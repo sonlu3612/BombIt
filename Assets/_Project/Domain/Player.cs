@@ -5,7 +5,7 @@ namespace _Project.Domain
     {
         public int Health { get; private set; } = 1;
         public float Speed { get; private set; } = 3f;
-        public int BombRange { get; private set; } = 2;
+        public int BombRange { get; private set; } = 1;
         public int BombCount { get; private set; } = 1;
 
         public void TakeDamage(int amount = 1)
@@ -32,7 +32,7 @@ namespace _Project.Domain
         {
             Health = 1;
             Speed = 3f;
-            BombRange = 2;
+            BombRange = 1;
             BombCount = 1;
         }
     }

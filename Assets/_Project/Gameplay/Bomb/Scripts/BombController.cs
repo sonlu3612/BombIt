@@ -1,46 +1,91 @@
-﻿using UnityEngine;
+﻿using _Project.Domain;
+using Assets._Project.Gameplay.Bomb.Scripts;
+using System;
 using System.Collections;
-using _Project.Domain;
+using UnityEngine;
 
 namespace _Project.Gameplay.Bomb.Scripts
 {
     public class BombController : MonoBehaviour
     {
         private Domain.Bomb bombData;
-        private System.Action onExplode;
+        private Action onExplode;
+        [SerializeField] private float tileSize = 1f;
 
-        public GameObject explosionCenter;
-        public GameObject explosionMiddle;
-        public GameObject explosionEnd;
+        [Header("Explosion Prefabs")]
+        [SerializeField] private GameObject explosionCenter;
+        [SerializeField] private GameObject explosionMiddle;
+        [SerializeField] private GameObject explosionEnd;
 
-        public void Init(Domain.Bomb data, System.Action onExplodeCallback)
+        private static readonly Vector2[] directions =
+        {
+            Vector2.up,
+            Vector2.down,
+            Vector2.left,
+            Vector2.right
+        };
+
+        public void Init(Domain.Bomb data, Action onExplodeCallback)
         {
             bombData = data;
             onExplode = onExplodeCallback;
+
             StartCoroutine(ExplodeAfterTime());
         }
 
-        IEnumerator ExplodeAfterTime()
+        private IEnumerator ExplodeAfterTime()
         {
             yield return new WaitForSeconds(bombData.explodeTime);
 
             Explode();
-
-            onExplode?.Invoke(); 
+            onExplode?.Invoke();
 
             Destroy(gameObject);
         }
 
-        void Explode()
+        private void Explode()
         {
-            Vector3 pos = transform.position;
+            Vector3 origin = transform.position;
 
-            Instantiate(explosionCenter, pos, Quaternion.identity);
+            var center = Instantiate(explosionCenter, origin, Quaternion.identity);
 
-            ExplodeDir(Vector2.up);
-            ExplodeDir(Vector2.down);
-            ExplodeDir(Vector2.left);
-            ExplodeDir(Vector2.right);
+            Debug.Log($"CENTER at {center.transform.position}");
+
+            center.GetComponent<Explosion>()?.Play();
+
+            // 4 directions
+            foreach (var dir in directions)
+            {
+                ExplodeDirection(origin, dir);
+            }
+        }
+
+        private void ExplodeDirection(Vector3 origin, Vector2 dir)
+        {
+            Quaternion rotation = GetRotation(dir);
+            float offset = 0.7f;
+
+            for (int i = 1; i <= bombData.range; i++)
+            {
+                Vector3 spawnPos = origin + (Vector3)(dir * i);
+                spawnPos -= (Vector3)(dir * offset);
+
+                GameObject prefab;
+
+                if (bombData.range == 1)
+                {
+                    prefab = explosionEnd;
+                }
+                else
+                {
+                    prefab = (i == bombData.range)
+                        ? explosionEnd
+                        : explosionMiddle;
+                }
+
+                var obj = Instantiate(prefab, spawnPos, rotation);
+                obj.GetComponent<Explosion>()?.Play();
+            }
         }
 
         Quaternion GetRotation(Vector2 dir)
@@ -51,21 +96,6 @@ namespace _Project.Gameplay.Bomb.Scripts
             if (dir == Vector2.down) return Quaternion.Euler(0, 0, -90 + offset);
             if (dir == Vector2.left) return Quaternion.Euler(0, 0, 180 + offset);
             return Quaternion.Euler(0, 0, 0 + offset); // right
-        }
-
-        void ExplodeDir(Vector2 dir)
-        {
-            Quaternion rot = GetRotation(dir);
-
-            for (int i = 1; i <= bombData.range; i++)
-            {
-                Vector3 pos = transform.position + (Vector3)(dir * i);
-
-                if (i == bombData.range)
-                    Instantiate(explosionEnd, pos, rot);
-                else
-                    Instantiate(explosionMiddle, pos, rot);
-            }
         }
     }
 }

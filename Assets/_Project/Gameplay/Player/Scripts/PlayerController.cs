@@ -1,20 +1,22 @@
-﻿using UnityEngine;
-using _Project.Domain;
+﻿using _Project.Gameplay.Bomb.Scripts;
+using UnityEngine;
 
-namespace _Project.Gameplay.Scripts
+namespace _Project.Gameplay.Player.Scripts
 {
     public class PlayerController : MonoBehaviour
     {
-        private Player player;
+        private Domain.Player player;
         private Animator anim;
         private PlayerMovement movement;
 
         public Vector2 inputDir; 
         private Vector2 lastDir = Vector2.down;
+        [SerializeField] private GameObject bombPrefab;
+        private int currentBomb = 0;
 
         void Start()
         {
-            player = new Player();
+            player = new Domain.Player();
             anim = GetComponent<Animator>();
             movement = GetComponent<PlayerMovement>();
         }
@@ -52,6 +54,26 @@ namespace _Project.Gameplay.Scripts
             {
                 Die();
             }
+        }
+
+        public void PlaceBomb()
+        {
+            if (currentBomb >= player.BombCount) return;
+
+            Vector2Int gridPos = new Vector2Int(
+                Mathf.FloorToInt(transform.position.x),
+                Mathf.FloorToInt(transform.position.y)
+            );
+
+            Vector3 spawnPos = new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
+
+            var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
+
+            var bombData = new Domain.Bomb(gridPos, 2f, player.BombRange);
+
+            bombObj.GetComponent<BombController>().Init(bombData, () => currentBomb--);
+
+            currentBomb++;
         }
 
         void Die()

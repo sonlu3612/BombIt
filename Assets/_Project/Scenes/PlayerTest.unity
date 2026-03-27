@@ -223,6 +223,8 @@ GameObject:
   - component: {fileID: 1913799947}
   - component: {fileID: 1913799946}
   - component: {fileID: 1913799949}
+  - component: {fileID: 1913799950}
+  - component: {fileID: 1913799951}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -240,7 +242,7 @@ Animator:
   m_GameObject: {fileID: 1913799945}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 70e785d20b3e0d24cbd3a75e26b228a3, type: 2}
+  m_Controller: {fileID: 22100000, guid: 099cf3f4de18acb4f91cf7e58a726535, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -320,8 +322,8 @@ Transform:
   m_GameObject: {fileID: 1913799945}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.94, y: 1.24, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalPosition: {x: 2.48, y: 1.52, z: 0}
+  m_LocalScale: {x: 0.6, y: 0.6, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -338,6 +340,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba2017f84db68174ca8e4903fda5b079, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Scripts.PlayerController
+  inputDir: {x: 0, y: 0}
+  bombPrefab: {fileID: 4698958010277588, guid: 0293de9d25e4f64408aedd9a1c64e170, type: 3}
+--- !u!114 &1913799950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913799945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade0db74a7bc1a240a62018319edaed9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Scripts.PlayerMovement
+--- !u!114 &1913799951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913799945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7781fd1daacf49498cca525a0e78216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Scripts.PlayerInput
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

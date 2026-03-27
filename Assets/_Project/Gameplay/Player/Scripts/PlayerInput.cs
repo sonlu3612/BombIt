@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace _Project.Gameplay.Scripts
+namespace _Project.Gameplay.Player.Scripts
 {
     public class PlayerInput : MonoBehaviour
     {
@@ -24,6 +24,11 @@ namespace _Project.Gameplay.Scripts
             }
 
             controller.inputDir = dir;
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                controller.PlaceBomb();
+            }
         }
     }
 }

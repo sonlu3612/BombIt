@@ -27,5 +27,13 @@ namespace _Project.Domain
         {
             BombCount++;
         }
+
+        public Player()
+        {
+            Health = 1;
+            Speed = 3f;
+            BombRange = 2;
+            BombCount = 1;
+        }
     }
 }

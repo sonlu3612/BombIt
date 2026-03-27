@@ -3,46 +3,29 @@ namespace _Project.Domain
 {
     public class Player
     {
-        public int health { get; set; }
-        public float speed { get; set; }
-        public int bombRange { get; set; }
-        public int bombCount { get; set; }
+        public int Health { get; private set; } = 1;
+        public float Speed { get; private set; } = 3f;
+        public int BombRange { get; private set; } = 2;
+        public int BombCount { get; private set; } = 1;
 
-        public Player()
+        public void TakeDamage(int amount = 1)
         {
-            health = 1;
-            speed = 5.0f;
-            bombRange = 2;
-            bombCount = 1;
+            Health -= amount;
         }
-        public void TakeDamage()
+
+        public void IncreaseSpeed(float amount)
         {
-            health -= 1;
-            Debug.Log($"Player took 1 damage. Remaining health: {health}");
+            Speed += amount;
         }
-        public void setSpeed(float newSpeed)
+
+        public void IncreaseBombRange()
         {
-            speed = newSpeed;
-            Debug.Log($"Player speed set to: {speed}");
+            BombRange++;
         }
-        public void setBombRange(int newRange)
+
+        public void IncreaseBombCount()
         {
-            bombRange = newRange;
-            Debug.Log($"Player bomb range set to: {bombRange}");
-        }
-        public void setBombCount(int newCount)
-        {
-            bombCount = newCount;
-            Debug.Log($"Player bomb count set to: {bombCount}");
-        }
-        public void setHealth(int newHealth)
-        {
-            health = newHealth;
-            Debug.Log($"Player health set to: {health}");
-        }
-        public void getStatus()
-        {
-            Debug.Log($"Player Status - Health: {health}, Speed: {speed}, Bomb Range: {bombRange}, Bomb Count: {bombCount}");
+            BombCount++;
         }
     }
 }

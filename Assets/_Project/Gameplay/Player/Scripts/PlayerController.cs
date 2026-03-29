@@ -4,18 +4,21 @@ using UnityEngine.InputSystem;
 
 namespace _Project.Gameplay.Player.Scripts
 {
+    [RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(PlayerMovement))]
     public class PlayerController : MonoBehaviour
     {
         private Domain.Player player;
         private Animator anim;
         private PlayerMovement movement;
 
-        public Vector2 inputDir; 
+        public Vector2 inputDir;
         private Vector2 lastDir = Vector2.down;
+
         [SerializeField] private GameObject bombPrefab;
         private int currentBomb = 0;
 
-        void Start()
+        private void Start()
         {
             player = new Domain.Player();
             anim = GetComponent<Animator>();
@@ -24,18 +27,17 @@ namespace _Project.Gameplay.Player.Scripts
             inputDir = Vector2.zero;
         }
 
-        void Update()
+        private void Update()
         {
-            // HandleMovement();
             HandleAnimation();
         }
 
-        void FixedUpdate()
+        private void FixedUpdate()
         {
             HandleMovement();
         }
 
-        void HandleMovement()
+        private void HandleMovement()
         {
             if (inputDir != Vector2.zero)
             {
@@ -45,13 +47,27 @@ namespace _Project.Gameplay.Player.Scripts
             movement.Move(inputDir, player.Speed);
         }
 
-        void HandleAnimation()
+        private void HandleAnimation()
         {
             anim.SetFloat("MoveX", inputDir.x);
             anim.SetFloat("MoveY", inputDir.y);
             anim.SetFloat("LastMoveX", lastDir.x);
             anim.SetFloat("LastMoveY", lastDir.y);
             anim.SetBool("IsMoving", inputDir != Vector2.zero);
+        }
+
+        public void OnMove(InputValue value)
+        {
+            inputDir = value.Get<Vector2>();
+
+            // chặn đi chéo
+            if (inputDir.x != 0)
+                inputDir.y = 0;
+        }
+
+        public void OnBomb()
+        {
+            PlaceBomb();
         }
 
         public void TakeDamage()
@@ -75,57 +91,24 @@ namespace _Project.Gameplay.Player.Scripts
 
             Vector3 spawnPos = new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
 
-            var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
+            GameObject bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
 
-            var bombData = new Domain.Bomb(gridPos, 2f, player.BombRange);
+            Domain.Bomb bombData = new Domain.Bomb(gridPos, 2f, player.BombRange);
 
             bombObj.GetComponent<BombController>().Init(bombData, () => currentBomb--);
 
             currentBomb++;
         }
 
-        void Die()
+        private void Die()
         {
             Debug.Log("Player died");
             Destroy(gameObject);
         }
 
-        public void OnMove(InputValue value)
-        {
-            inputDir = value.Get<Vector2>();
-
-            // chặn đi chéo 
-            if (inputDir.x != 0)
-                inputDir.y = 0;
-        }
-
-        public void OnBomb()
-        {
-            PlaceBomb();
-        }
-
-
-
-        public void AddSpeed(float amount)
-        {
-            player.AddSpeed(amount);
-        }
-
-        public void AddBomb(int amount)
-        {
-            player.AddBombCount(amount);
-        }
-
-        public void AddRange(int amount)
-        {
-            player.AddBombRange(amount);
-        }
-
-        public void AddHealth(int amount)
-        {
-            player.AddHealth(amount);
-        }
-
-       
+        public void AddSpeed(float amount) => player.AddSpeed(amount);
+        public void AddBomb(int amount) => player.AddBombCount(amount);
+        public void AddRange(int amount) => player.AddBombRange(amount);
+        public void AddHealth(int amount) => player.AddHealth(amount);
     }
 }

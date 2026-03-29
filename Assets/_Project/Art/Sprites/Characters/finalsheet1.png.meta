@@ -174,7 +174,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 50
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -227,11 +227,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 23
-        y: 1000
-        width: 190
-        height: 232
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        y: 998
+        width: 191
+        height: 234
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -248,12 +248,12 @@ TextureImporter:
       name: finalsheet1_1
       rect:
         serializedVersion: 2
-        x: 266
+        x: 264
         y: 1000
-        width: 189
-        height: 234
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        width: 191
+        height: 232
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -270,12 +270,12 @@ TextureImporter:
       name: finalsheet1_3
       rect:
         serializedVersion: 2
-        x: 505
-        y: 1003
-        width: 191
-        height: 230
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 747
+        y: 1001
+        width: 188
+        height: 231
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -292,12 +292,12 @@ TextureImporter:
       name: finalsheet1_4
       rect:
         serializedVersion: 2
-        x: 746
-        y: 1001
-        width: 189
-        height: 231
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 985
+        y: 997
+        width: 191
+        height: 236
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -311,37 +311,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: finalsheet1_5
-      rect:
-        serializedVersion: 2
-        x: 985
-        y: 998
-        width: 190
-        height: 236
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2682ad98370591150800000000000000
-      internalID: 5843790448654166114
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: finalsheet1_6
       rect:
         serializedVersion: 2
         x: 1226
-        y: 995
-        width: 193
-        height: 237
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        y: 997
+        width: 190
+        height: 233
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -359,11 +337,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1467
-        y: 1000
-        width: 193
-        height: 230
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        y: 1001
+        width: 191
+        height: 229
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -380,12 +358,12 @@ TextureImporter:
       name: finalsheet1_9
       rect:
         serializedVersion: 2
-        x: 1709
-        y: 1002
-        width: 186
+        x: 1946
+        y: 1001
+        width: 192
         height: 230
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -399,37 +377,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: finalsheet1_11
-      rect:
-        serializedVersion: 2
-        x: 1948
-        y: 1002
-        width: 187
-        height: 229
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f721625d5dd5a2830800000000000000
-      internalID: 4047150388131271295
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: finalsheet1_14
       rect:
         serializedVersion: 2
-        x: 47
-        y: 680
-        width: 159
-        height: 242
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 288
+        y: 682
+        width: 161
+        height: 241
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -446,12 +402,12 @@ TextureImporter:
       name: finalsheet1_15
       rect:
         serializedVersion: 2
-        x: 288
+        x: 530
         y: 682
-        width: 162
-        height: 241
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        width: 159
+        height: 240
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -468,12 +424,12 @@ TextureImporter:
       name: finalsheet1_16
       rect:
         serializedVersion: 2
-        x: 530
+        x: 768
         y: 682
         width: 159
-        height: 240
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -490,12 +446,12 @@ TextureImporter:
       name: finalsheet1_17
       rect:
         serializedVersion: 2
-        x: 768
-        y: 682
-        width: 159
-        height: 242
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1010
+        y: 683
+        width: 158
+        height: 240
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -512,12 +468,12 @@ TextureImporter:
       name: finalsheet1_19
       rect:
         serializedVersion: 2
-        x: 1009
-        y: 683
-        width: 158
-        height: 240
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1487
+        y: 679
+        width: 164
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -534,12 +490,12 @@ TextureImporter:
       name: finalsheet1_20
       rect:
         serializedVersion: 2
-        x: 1250
-        y: 682
-        width: 159
+        x: 1729
+        y: 680
+        width: 157
         height: 240
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -556,12 +512,12 @@ TextureImporter:
       name: finalsheet1_21
       rect:
         serializedVersion: 2
-        x: 1487
+        x: 1969
         y: 679
-        width: 164
-        height: 242
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        width: 158
+        height: 240
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -578,12 +534,12 @@ TextureImporter:
       name: finalsheet1_22
       rect:
         serializedVersion: 2
-        x: 1729
-        y: 681
-        width: 161
-        height: 239
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 46
+        y: 355
+        width: 153
+        height: 244
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -600,12 +556,12 @@ TextureImporter:
       name: finalsheet1_23
       rect:
         serializedVersion: 2
-        x: 1965
-        y: 682
-        width: 158
-        height: 240
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 280
+        y: 356
+        width: 155
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -622,12 +578,12 @@ TextureImporter:
       name: finalsheet1_24
       rect:
         serializedVersion: 2
-        x: 46
-        y: 355
-        width: 153
-        height: 244
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 519
+        y: 357
+        width: 157
+        height: 243
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -644,12 +600,12 @@ TextureImporter:
       name: finalsheet1_25
       rect:
         serializedVersion: 2
-        x: 280
-        y: 356
+        x: 762
+        y: 357
         width: 155
-        height: 242
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        height: 243
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -666,12 +622,12 @@ TextureImporter:
       name: finalsheet1_26
       rect:
         serializedVersion: 2
-        x: 520
-        y: 357
-        width: 155
-        height: 243
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1000
+        y: 356
+        width: 156
+        height: 245
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -688,12 +644,12 @@ TextureImporter:
       name: finalsheet1_27
       rect:
         serializedVersion: 2
-        x: 762
-        y: 357
+        x: 1243
+        y: 356
         width: 155
-        height: 243
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -710,12 +666,12 @@ TextureImporter:
       name: finalsheet1_28
       rect:
         serializedVersion: 2
-        x: 1001
+        x: 1486
         y: 356
         width: 155
-        height: 245
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        height: 241
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -732,12 +688,12 @@ TextureImporter:
       name: finalsheet1_29
       rect:
         serializedVersion: 2
-        x: 1243
-        y: 356
-        width: 155
-        height: 242
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1722
+        y: 355
+        width: 156
+        height: 243
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -754,12 +710,12 @@ TextureImporter:
       name: finalsheet1_30
       rect:
         serializedVersion: 2
-        x: 1486
-        y: 356
-        width: 154
-        height: 241
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1961
+        y: 354
+        width: 153
+        height: 243
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -776,12 +732,12 @@ TextureImporter:
       name: finalsheet1_31
       rect:
         serializedVersion: 2
-        x: 1722
-        y: 355
-        width: 156
-        height: 243
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 56
+        y: 67
+        width: 172
+        height: 236
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -798,12 +754,12 @@ TextureImporter:
       name: finalsheet1_32
       rect:
         serializedVersion: 2
-        x: 1961
-        y: 354
-        width: 153
-        height: 243
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 295
+        y: 68
+        width: 172
+        height: 235
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -820,12 +776,12 @@ TextureImporter:
       name: finalsheet1_33
       rect:
         serializedVersion: 2
-        x: 57
-        y: 67
+        x: 535
+        y: 70
         width: 171
-        height: 236
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        height: 232
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -842,12 +798,12 @@ TextureImporter:
       name: finalsheet1_34
       rect:
         serializedVersion: 2
-        x: 295
-        y: 68
-        width: 171
-        height: 235
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 772
+        y: 72
+        width: 178
+        height: 232
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -864,12 +820,12 @@ TextureImporter:
       name: finalsheet1_35
       rect:
         serializedVersion: 2
-        x: 535
-        y: 70
-        width: 171
+        x: 1016
+        y: 71
+        width: 176
         height: 232
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -886,12 +842,12 @@ TextureImporter:
       name: finalsheet1_36
       rect:
         serializedVersion: 2
-        x: 772
-        y: 72
-        width: 179
-        height: 233
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1252
+        y: 65
+        width: 174
+        height: 235
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -908,12 +864,12 @@ TextureImporter:
       name: finalsheet1_37
       rect:
         serializedVersion: 2
-        x: 1016
-        y: 71
-        width: 176
-        height: 232
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1496
+        y: 68
+        width: 170
+        height: 231
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -930,12 +886,12 @@ TextureImporter:
       name: finalsheet1_38
       rect:
         serializedVersion: 2
-        x: 1252
-        y: 64
-        width: 174
-        height: 236
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1734
+        y: 67
+        width: 172
+        height: 232
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -952,12 +908,12 @@ TextureImporter:
       name: finalsheet1_39
       rect:
         serializedVersion: 2
-        x: 1496
-        y: 68
-        width: 170
-        height: 231
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1977
+        y: 69
+        width: 172
+        height: 235
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -971,45 +927,89 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: finalsheet1_40
+      name: finalsheet1_2
       rect:
         serializedVersion: 2
-        x: 1734
-        y: 67
-        width: 172
-        height: 232
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 505
+        y: 1003
+        width: 192
+        height: 230
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8263d6aa8314bd8c0800000000000000
-      internalID: -3973510534591072728
+      spriteID: 643c7f3bc80dc3b418428062b7b5dbb7
+      internalID: -6835191510492476351
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: finalsheet1_41
+      name: finalsheet1_8
       rect:
         serializedVersion: 2
-        x: 1977
-        y: 69
-        width: 172
-        height: 235
-      alignment: 2
-      pivot: {x: 0.5, y: 1}
+        x: 1707
+        y: 1001
+        width: 192
+        height: 230
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 558590767c6d7cfb0800000000000000
-      internalID: -4627493940184393643
+      spriteID: f6c274fe63081124eb24d7167b813078
+      internalID: -6778471920359009696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: finalsheet1_13
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 678
+        width: 159
+        height: 244
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 543f017311a452d479dcdee0409ddfbc
+      internalID: 5935881336601946198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: finalsheet1_18
+      rect:
+        serializedVersion: 2
+        x: 1249
+        y: 680
+        width: 160
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd339a7299d181b459ce5d3c83ed11ee
+      internalID: 1576329136381908091
       vertices: []
       indices: 
       edges: []
@@ -1026,7 +1026,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       finalsheet1_0: 2177927245547169575
       finalsheet1_1: -977141492200857956
@@ -1063,8 +1065,6 @@ TextureImporter:
       finalsheet1_38: 6741028379957308568
       finalsheet1_39: 8054803914213795144
       finalsheet1_4: 4196268415108888610
-      finalsheet1_40: -3973510534591072728
-      finalsheet1_41: -4627493940184393643
       finalsheet1_5: 5843790448654166114
       finalsheet1_6: 8251019832841693881
       finalsheet1_7: 267780676934257969

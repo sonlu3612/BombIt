@@ -1,5 +1,6 @@
 ﻿using _Project.Gameplay.Bomb.Scripts;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace _Project.Gameplay.Player.Scripts
 {
@@ -19,12 +20,19 @@ namespace _Project.Gameplay.Player.Scripts
             player = new Domain.Player();
             anim = GetComponent<Animator>();
             movement = GetComponent<PlayerMovement>();
+
+            inputDir = Vector2.zero;
         }
 
         void Update()
         {
-            HandleMovement();
+            // HandleMovement();
             HandleAnimation();
+        }
+
+        void FixedUpdate()
+        {
+            HandleMovement();
         }
 
         void HandleMovement()
@@ -81,5 +89,43 @@ namespace _Project.Gameplay.Player.Scripts
             Debug.Log("Player died");
             Destroy(gameObject);
         }
+
+        public void OnMove(InputValue value)
+        {
+            inputDir = value.Get<Vector2>();
+
+            // chặn đi chéo 
+            if (inputDir.x != 0)
+                inputDir.y = 0;
+        }
+
+        public void OnBomb()
+        {
+            PlaceBomb();
+        }
+
+
+
+        public void AddSpeed(float amount)
+        {
+            player.AddSpeed(amount);
+        }
+
+        public void AddBomb(int amount)
+        {
+            player.AddBombCount(amount);
+        }
+
+        public void AddRange(int amount)
+        {
+            player.AddBombRange(amount);
+        }
+
+        public void AddHealth(int amount)
+        {
+            player.AddHealth(amount);
+        }
+
+       
     }
 }

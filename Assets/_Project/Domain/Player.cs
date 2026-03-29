@@ -1,4 +1,5 @@
 using UnityEngine;
+
 namespace _Project.Domain
 {
     public class Player
@@ -13,27 +14,24 @@ namespace _Project.Domain
             Health -= amount;
         }
 
-        public void IncreaseSpeed(float amount)
+        public void AddHealth(int amount)
+        {
+            Health += amount;
+        }
+
+        public void AddSpeed(float amount)
         {
             Speed += amount;
         }
 
-        public void IncreaseBombRange()
+        public void AddBombRange(int amount)
         {
-            BombRange++;
+            BombRange += amount;
         }
 
-        public void IncreaseBombCount()
+        public void AddBombCount(int amount)
         {
-            BombCount++;
-        }
-
-        public Player()
-        {
-            Health = 1;
-            Speed = 3f;
-            BombRange = 2;
-            BombCount = 1;
+            BombCount += amount;
         }
     }
 }

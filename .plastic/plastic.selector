@@ -1,3 +1,0 @@
-repository "BombIt/BombIt@18967856713345@cloud"
-  path "/"
-    smartbranch "/main/feature - map"

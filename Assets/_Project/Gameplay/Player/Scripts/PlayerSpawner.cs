@@ -21,7 +21,7 @@ public class PlayerSpawner : MonoBehaviour
         spawnPoints = new Vector2Int[]
         {
             // new Vector2Int(mapWidth/2-1, mapHeight/2-1),
-            new Vector2Int(-mapWidth/2+2, -mapHeight/2+2),
+            new Vector2Int(-mapWidth/2+1, -mapHeight/2+1),
             // new Vector2Int(mapWidth/2-1, -mapHeight/2+1),
             // new Vector2Int(-mapWidth/2+1, mapHeight/2-1)
         };

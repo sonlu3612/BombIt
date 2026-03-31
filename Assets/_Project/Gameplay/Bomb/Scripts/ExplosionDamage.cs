@@ -7,11 +7,11 @@ namespace Assets._Project.Gameplay.Bomb.Scripts
     {
         private void OnTriggerEnter2D(Collider2D other)
         {
-            var player = other.GetComponent<PlayerController>();
-            if (player != null)
-            {
-                player.TakeDamage();
-            }
+            //var player = other.GetComponent<PlayerController>();
+            //if (player != null)
+            //{
+            //    player.TakeDamage();
+            //}
         }
     }
 }

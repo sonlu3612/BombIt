@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -7,25 +8,58 @@ public class MapBuilder : MonoBehaviour
     public GameObject blockPrefab;
     public Transform blockContainer;
 
-    void Start()
+    private readonly Dictionary<Vector3Int, DestructibleBlock> blockMap = new();
+
+    private void Start()
     {
         BuildMap();
     }
 
-    void BuildMap()
+    private void BuildMap()
     {
-        foreach (var pos in blockTilemap.cellBounds.allPositionsWithin)
+        blockMap.Clear();
+
+        foreach (Vector3Int pos in blockTilemap.cellBounds.allPositionsWithin)
         {
             if (!blockTilemap.HasTile(pos)) continue;
 
-            // chuyển từ cell → world
-            Vector3 worldPos = blockTilemap.CellToWorld(pos) + new Vector3(0.5f, 0.5f, 0);
+            Vector3 worldPos = blockTilemap.GetCellCenterWorld(pos);
+            GameObject obj = Instantiate(blockPrefab, worldPos, Quaternion.identity, blockContainer);
 
-            // spawn block prefab
-            Instantiate(blockPrefab, worldPos, Quaternion.identity, blockContainer);
+            DestructibleBlock block = obj.GetComponent<DestructibleBlock>();
+            if (block != null)
+            {
+                blockMap[pos] = block;
+            }
         }
 
-        // xoá tile (chỉ dùng làm data)
-        //blockTilemap.ClearAllTiles();
+        // KHÔNG clear tilemap nữa
+        // blockTilemap.ClearAllTiles();
+    }
+
+    public bool HasBlock(Vector3Int cell)
+    {
+        return blockMap.ContainsKey(cell) && blockMap[cell] != null;
+    }
+
+    public bool DestroyBlockAt(Vector3Int cell)
+    {
+        bool destroyed = false;
+
+        if (blockMap.TryGetValue(cell, out DestructibleBlock block) && block != null)
+        {
+            block.DestroyBlock();
+            blockMap.Remove(cell);
+            destroyed = true;
+        }
+
+        if (blockTilemap != null && blockTilemap.HasTile(cell))
+        {
+            blockTilemap.SetTile(cell, null);
+            blockTilemap.RefreshTile(cell);
+            destroyed = true;
+        }
+
+        return destroyed;
     }
 }

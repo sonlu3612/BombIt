@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Player.Scripts.PlayerController
   inputDir: {x: 0, y: 0}
-  bombPrefab: {fileID: 0}
+  bombPrefab: {fileID: 4698958010277588, guid: 0293de9d25e4f64408aedd9a1c64e170, type: 3}
 --- !u!114 &4696538979290410059
 MonoBehaviour:
   m_ObjectHideFlags: 0

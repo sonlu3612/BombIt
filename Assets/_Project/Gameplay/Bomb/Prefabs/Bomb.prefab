@@ -181,7 +181,7 @@ MonoBehaviour:
   explosionMiddle: {fileID: 3508384619804091899, guid: bf47b14e461baf549ad8fb38d61aada4, type: 3}
   explosionEnd: {fileID: 7977355151957853979, guid: f20abfdf0ad89ac429b32f82e6324bcc, type: 3}
   explosionHitWall: {fileID: 8235306533520894322, guid: 9c79c831adf75bc4f8e071a260f63f78, type: 3}
-  explosionHitBlock: {fileID: 0}
+  explosionHitBlock: {fileID: 2090582444070679679, guid: 2cdf5d557e5fcde4288d495688747664, type: 3}
   middleVisualOffset: 0
   endVisualOffset: 0
   hitWallVisualOffset: 0

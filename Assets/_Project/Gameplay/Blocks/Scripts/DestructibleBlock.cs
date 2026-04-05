@@ -1,33 +1,47 @@
 using UnityEngine;
 
-public class DestructibleBlock : MonoBehaviour
+namespace _Project.Gameplay.Block.Scripts
 {
-    public GameObject[] itemPrefabs;
-    public float dropRate = 0.8f;
-    public Transform itemContainer;
-
-    public void DestroyBlock()
+    public class DestructibleBlock : MonoBehaviour
     {
-        TrySpawnItem();
-        Destroy(gameObject);
-    }
+        [Header("Effects")]
+        [SerializeField] private GameObject breakEffectPrefab;
 
-    private void TrySpawnItem()
-    {
-        if (itemPrefabs == null || itemPrefabs.Length == 0) return;
-        if (Random.value >= dropRate) return;
+        [Header("Item Drop")]
+        [SerializeField] private GameObject[] itemPrefabs;
+        [SerializeField, Range(0f, 1f)] private float dropChance = 0.35f;
 
-        int index = Random.Range(0, itemPrefabs.Length);
+        private bool isBroken = false;
 
-        Vector3 spawnPos = transform.position;
-
-        if (itemContainer != null)
+        public void Break()
         {
-            Instantiate(itemPrefabs[index], spawnPos, Quaternion.identity, itemContainer);
+            if (isBroken) return;
+            isBroken = true;
+
+            if (breakEffectPrefab != null)
+            {
+                Instantiate(breakEffectPrefab, transform.position, Quaternion.identity);
+            }
+
+            TryDropItem();
+
+            Destroy(gameObject);
         }
-        else
+
+        private void TryDropItem()
         {
-            Instantiate(itemPrefabs[index], spawnPos, Quaternion.identity);
+            if (itemPrefabs == null || itemPrefabs.Length == 0) return;
+
+            float roll = Random.value;
+            if (roll > dropChance) return;
+
+            int index = Random.Range(0, itemPrefabs.Length);
+            GameObject itemPrefab = itemPrefabs[index];
+
+            if (itemPrefab != null)
+            {
+                Instantiate(itemPrefab, transform.position, Quaternion.identity);
+            }
         }
     }
 }

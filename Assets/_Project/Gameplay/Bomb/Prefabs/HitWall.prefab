@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6536444956577997887}
   - component: {fileID: 5562632938930515202}
   - component: {fileID: 9149933422957612100}
+  - component: {fileID: -4832968759349202456}
   m_Layer: 0
   m_Name: HitWall
   m_TagString: Untagged
@@ -102,7 +103,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 3
   m_MaskInteraction: 0
   m_Sprite: {fileID: -6470460504253458178, guid: f6c0f468084ebbe43b396ce2af102d59, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -114,3 +115,15 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &-4832968759349202456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8235306533520894322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9f6a08b313cea444a5ca48e6e9b6460, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Bomb.Scripts.ExplosionAutoDestroy

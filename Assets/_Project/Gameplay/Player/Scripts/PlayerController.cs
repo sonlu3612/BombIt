@@ -1,4 +1,5 @@
-﻿using _Project.Gameplay.Bomb.Scripts;
+using _Project.Gameplay.Bomb.Scripts;
+using _Project.Gameplay.Map.Scripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -13,15 +14,21 @@ namespace _Project.Gameplay.Player.Scripts
         private Animator anim;
         private PlayerMovement movement;
 
+        private MapContext mapContext;
+
         public Vector2 inputDir;
         private Vector2 lastDir = Vector2.down;
 
         [SerializeField] private GameObject bombPrefab;
-        [SerializeField] private Tilemap wallTilemap;
-        [SerializeField] private Tilemap blockTilemap;
-        [SerializeField] private MapBuilder mapBuilder;
-        [SerializeField] private Tilemap referenceTilemap;
         [SerializeField] private Transform feetPoint;
+
+        public int BombCapacity => player != null ? player.BombCount : 1;
+        public int BombRangeStat => player != null ? player.BombRange : 1;
+        public float MoveSpeedStat => player != null ? player.Speed : 0f;
+        public int HealthStat => player != null ? player.Health : 1;
+        public int ActiveBombCount => currentBomb;
+        public bool CanPlaceBomb => player != null && currentBomb < player.BombCount;
+
 
         [Header("Debug Player Hitbox")]
         [SerializeField] private bool debugPlayerCell = true;
@@ -33,6 +40,11 @@ namespace _Project.Gameplay.Player.Scripts
 
         private int currentBomb = 0;
 
+        public void Init(MapContext context)
+        {
+            mapContext = context;
+        }
+
         private void Start()
         {
             player = new Domain.Player();
@@ -40,6 +52,16 @@ namespace _Project.Gameplay.Player.Scripts
             movement = GetComponent<PlayerMovement>();
 
             inputDir = Vector2.zero;
+
+            if (mapContext == null)
+            {
+                mapContext = FindObjectOfType<MapContext>();
+
+                if (mapContext == null)
+                {
+                    Debug.LogError($"[{nameof(PlayerController)}] No MapContext found for {gameObject.name}.", this);
+                }
+            }
         }
 
         private void Update()
@@ -68,16 +90,25 @@ namespace _Project.Gameplay.Player.Scripts
                 {
                     Vector3 samplePos = feetPoint != null ? feetPoint.position : transform.position;
 
-                    if (referenceTilemap != null)
-                        cell = referenceTilemap.WorldToCell(samplePos);
-                    else if (wallTilemap != null)
-                        cell = wallTilemap.WorldToCell(samplePos);
+                    Tilemap refMap = GetReferenceTilemapInEditor();
+                    Tilemap wallMap = GetWallTilemapInEditor();
+
+                    if (refMap != null)
+                    {
+                        cell = refMap.WorldToCell(samplePos);
+                    }
+                    else if (wallMap != null)
+                    {
+                        cell = wallMap.WorldToCell(samplePos);
+                    }
                     else
+                    {
                         cell = new Vector3Int(
                             Mathf.FloorToInt(samplePos.x),
                             Mathf.FloorToInt(samplePos.y),
                             0
                         );
+                    }
                 }
 
                 Vector3 center = GetCellCenterWorld(cell);
@@ -109,18 +140,42 @@ namespace _Project.Gameplay.Player.Scripts
             }
         }
 
+        private Tilemap GetReferenceTilemapInEditor()
+        {
+            if (mapContext != null && mapContext.ReferenceTilemap != null)
+                return mapContext.ReferenceTilemap;
+
+            MapContext foundContext = GetComponentInParent<MapContext>();
+            if (foundContext != null && foundContext.ReferenceTilemap != null)
+                return foundContext.ReferenceTilemap;
+
+            return null;
+        }
+
+        private Tilemap GetWallTilemapInEditor()
+        {
+            if (mapContext != null && mapContext.WallTilemap != null)
+                return mapContext.WallTilemap;
+
+            MapContext foundContext = GetComponentInParent<MapContext>();
+            if (foundContext != null && foundContext.WallTilemap != null)
+                return foundContext.WallTilemap;
+
+            return null;
+        }
+
         public Vector3Int GetCurrentCell()
         {
-            Vector3 samplePos = feetPoint != null ? feetPoint.position : transform.position;
+            Vector3 samplePos = GetNavigationWorldPosition();
 
-            if (referenceTilemap != null)
+            if (mapContext != null && mapContext.ReferenceTilemap != null)
             {
-                return referenceTilemap.WorldToCell(samplePos);
+                return mapContext.ReferenceTilemap.WorldToCell(samplePos);
             }
 
-            if (wallTilemap != null)
+            if (mapContext != null && mapContext.WallTilemap != null)
             {
-                return wallTilemap.WorldToCell(samplePos);
+                return mapContext.WallTilemap.WorldToCell(samplePos);
             }
 
             return new Vector3Int(
@@ -130,13 +185,18 @@ namespace _Project.Gameplay.Player.Scripts
             );
         }
 
+        public Vector3 GetNavigationWorldPosition()
+        {
+            return feetPoint != null ? feetPoint.position : transform.position;
+        }
+
         private Vector3 GetCellCenterWorld(Vector3Int cell)
         {
-            if (referenceTilemap != null)
-                return referenceTilemap.GetCellCenterWorld(cell);
+            if (mapContext != null && mapContext.ReferenceTilemap != null)
+                return mapContext.ReferenceTilemap.GetCellCenterWorld(cell);
 
-            if (wallTilemap != null)
-                return wallTilemap.GetCellCenterWorld(cell);
+            if (mapContext != null && mapContext.WallTilemap != null)
+                return mapContext.WallTilemap.GetCellCenterWorld(cell);
 
             return new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
         }
@@ -187,6 +247,12 @@ namespace _Project.Gameplay.Player.Scripts
         {
             if (currentBomb >= player.BombCount) return;
 
+            if (mapContext == null)
+            {
+                Debug.LogError($"[{nameof(PlayerController)}] Cannot place bomb because MapContext is null.", this);
+                return;
+            }
+
             Vector3Int cell = GetCurrentCell();
             Vector2Int gridPos = new Vector2Int(cell.x, cell.y);
 
@@ -197,11 +263,19 @@ namespace _Project.Gameplay.Player.Scripts
 
             Domain.Bomb bombData = new Domain.Bomb(gridPos, 2f, player.BombRange);
 
-            bombObj.GetComponent<BombController>().Init(
+            BombController bombController = bombObj.GetComponent<BombController>();
+            if (bombController == null)
+            {
+                Debug.LogError($"[{nameof(PlayerController)}] Bomb prefab has no BombController.", bombObj);
+                Destroy(bombObj);
+                return;
+            }
+
+            bombController.Init(
                 bombData,
-                wallTilemap,
-                referenceTilemap,
-                mapBuilder,
+                mapContext.WallTilemap,
+                mapContext.ReferenceTilemap,
+                mapContext.MapBuilder,
                 () => currentBomb--
             );
 
@@ -214,6 +288,18 @@ namespace _Project.Gameplay.Player.Scripts
             Destroy(gameObject);
         }
 
+        public void SetMoveDirection(Vector2 dir)
+        {
+            inputDir = dir;
+
+            if (inputDir.x != 0)
+                inputDir.y = 0;
+        }
+
+        public void StopMoving()
+        {
+            inputDir = Vector2.zero;
+        }
         public void AddSpeed(float amount) => player.AddSpeed(amount);
         public void AddBomb(int amount) => player.AddBombCount(amount);
         public void AddRange(int amount) => player.AddBombRange(amount);

@@ -13,6 +13,12 @@ namespace _Project.Gameplay.Bomb.Scripts
         private Domain.Bomb bombData;
         private Action onExplode;
         private bool hasDamagedPlayerThisExplosion;
+        private float spawnedAt;
+
+        public Vector3Int CurrentCell => GetBombCell();
+        public int Range => bombData != null ? bombData.range : 1;
+        public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
+
 
         [Header("Map References")]
         [SerializeField] private Tilemap wallTilemap;
@@ -59,6 +65,7 @@ namespace _Project.Gameplay.Bomb.Scripts
             referenceTilemap = referenceMap;
             mapBuilder = builder;
             onExplode = onExplodeCallback;
+            spawnedAt = Time.time;
 
             StartCoroutine(ExplodeAfterTime());
         }
@@ -176,7 +183,10 @@ namespace _Project.Gameplay.Bomb.Scripts
                     DamagePlayerAtCell(cell);
 
                     GameObject blockPrefab = explosionHitBlock != null ? explosionHitBlock : explosionEnd;
-                    SpawnExplosion(blockPrefab, visualPos, rotation);
+
+                    // CHỈ HitBlock mới vào giữa ô
+                    Vector3 blockPos = GetCellCenterWorld(cell);
+                    SpawnExplosion(blockPrefab, blockPos, rotation);
                     break;
                 }
 

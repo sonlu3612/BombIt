@@ -1,3 +1,4 @@
+using _Project.Gameplay.Block.Scripts;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -48,7 +49,7 @@ public class MapBuilder : MonoBehaviour
 
         if (blockMap.TryGetValue(cell, out DestructibleBlock block) && block != null)
         {
-            block.DestroyBlock();
+            block.Break();
             blockMap.Remove(cell);
             destroyed = true;
         }

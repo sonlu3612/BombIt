@@ -9,6 +9,7 @@ namespace _Project.Gameplay.AI.Scripts
 {
     public static class BotSenseBuilder
     {
+        [System.Obsolete]
         public static BotSenseContext Build(PlayerController self, MapContext mapContext, BotConfig config)
         {
             BotSenseContext sense = new();
@@ -20,14 +21,14 @@ namespace _Project.Gameplay.AI.Scripts
 
             FindEnemies(self, sense);
             FindBombsAndDanger(sense, mapContext);
-            BuildReachableCells(sense, mapContext, config);
+            BuildReachableCells(self, sense, mapContext, config);
             FindItems(sense, mapContext);
             BuildSafeCells(sense);
 
             return sense;
         }
 
-        private static void BuildReachableCells(BotSenseContext sense, MapContext mapContext, BotConfig config)
+        private static void BuildReachableCells(PlayerController self, BotSenseContext sense, MapContext mapContext, BotConfig config)
         {
             HashSet<Vector3Int> visited = new();
             Queue<(Vector3Int cell, int dist)> queue = new();
@@ -42,7 +43,7 @@ namespace _Project.Gameplay.AI.Scripts
                 if (dist > config.findRange)
                     continue;
 
-                if (IsTraversable(cell, sense, mapContext))
+                if (IsTraversable(self, cell, sense, mapContext))
                     sense.FreeCells.Add(cell);
 
                 foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
@@ -58,7 +59,7 @@ namespace _Project.Gameplay.AI.Scripts
                     if (visited.Contains(next))
                         continue;
 
-                    if (!IsTraversable(next, sense, mapContext))
+                    if (!IsTraversable(self, next, sense, mapContext))
                         continue;
 
                     visited.Add(next);
@@ -70,6 +71,7 @@ namespace _Project.Gameplay.AI.Scripts
                 sense.FreeCells.Add(sense.CurrentCell);
         }
 
+        [System.Obsolete]
         private static void FindEnemies(PlayerController self, BotSenseContext sense)
         {
             PlayerController[] players = Object.FindObjectsOfType<PlayerController>();
@@ -87,6 +89,7 @@ namespace _Project.Gameplay.AI.Scripts
             }
         }
 
+        [System.Obsolete]
         private static void FindItems(BotSenseContext sense, MapContext mapContext)
         {
             ItemPickup[] items = Object.FindObjectsOfType<ItemPickup>();
@@ -107,6 +110,7 @@ namespace _Project.Gameplay.AI.Scripts
             }
         }
 
+        [System.Obsolete]
         private static void FindBombsAndDanger(BotSenseContext sense, MapContext mapContext)
         {
             BombController[] bombs = Object.FindObjectsOfType<BombController>();
@@ -148,8 +152,21 @@ namespace _Project.Gameplay.AI.Scripts
             }
         }
 
-        private static bool IsTraversable(Vector3Int cell, BotSenseContext sense, MapContext mapContext)
+        private static bool IsTraversable(PlayerController self, Vector3Int cell, BotSenseContext sense, MapContext mapContext)
         {
+            GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
+
+            if (occupancy != null)
+            {
+                if (occupancy.IsStaticallyBlocked(cell))
+                    return false;
+
+                if (cell != sense.CurrentCell && occupancy.IsDynamicallyBlocked(cell, self, true, true))
+                    return false;
+
+                return true;
+            }
+
             if (!BotGridUtility.IsWalkable(cell, mapContext))
                 return false;
 
@@ -158,5 +175,6 @@ namespace _Project.Gameplay.AI.Scripts
 
             return true;
         }
+
     }
 }

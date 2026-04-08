@@ -1,3 +1,4 @@
+using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -11,6 +12,10 @@ namespace _Project.Gameplay.AI.Scripts
         private readonly float reachThreshold;
         private const float StuckDistanceThreshold = 0.02f;
         private const float StuckTimeout = 0.4f;
+
+        private Vector2 lastLoggedMoveDirection = new(float.NaN, float.NaN);
+        private Vector3Int? lastLoggedMoveTargetCell;
+        private int lastLoggedPathIndex = -1;
 
         public PlayerController Player => player;
 
@@ -26,10 +31,16 @@ namespace _Project.Gameplay.AI.Scripts
             if (player == null)
                 return;
 
+            if (player.inputDir != Vector2.zero)
+                BotRuntimeDebugLog.LogBotStop(player, player.GetCurrentCell());
+
             player.SetMoveDirection(Vector2.zero);
+            lastLoggedMoveDirection = new Vector2(float.NaN, float.NaN);
+            lastLoggedMoveTargetCell = null;
+            lastLoggedPathIndex = -1;
         }
 
-        public void MoveTowardsCell(Vector3Int targetCell)
+        public void MoveTowardsCell(Vector3Int targetCell, int pathIndex = -1, int pathCount = -1)
         {
             if (player == null || referenceTilemap == null)
                 return;
@@ -41,32 +52,30 @@ namespace _Project.Gameplay.AI.Scripts
             Vector2 delta = targetWorld - currentWorld;
             Vector2 alignDelta = currentCellCenter - currentWorld;
 
-            if (Mathf.Abs(delta.x) <= reachThreshold && Mathf.Abs(delta.y) <= reachThreshold)
+            if (currentCell == targetCell || (Mathf.Abs(delta.x) <= reachThreshold && Mathf.Abs(delta.y) <= reachThreshold))
             {
                 player.SetMoveDirection(Vector2.zero);
                 return;
             }
 
-            Vector2 moveDir;
+            Vector2 primaryMoveDir = GetPrimaryMoveDirection(currentCell, targetCell, delta);
+            Vector2 moveDir = primaryMoveDir;
 
-            bool wantsHorizontalStep = targetCell.x != currentCell.x;
-            bool wantsVerticalStep = targetCell.y != currentCell.y;
+            if (TryGetAlignmentDirection(currentCell, targetCell, alignDelta, out Vector2 alignmentDir)
+                && CanTraverseToward(currentCell, alignmentDir))
+            {
+                moveDir = alignmentDir;
+            }
 
-            if (wantsHorizontalStep && Mathf.Abs(alignDelta.y) > reachThreshold)
+            if (moveDir == Vector2.zero)
+                moveDir = primaryMoveDir != Vector2.zero ? primaryMoveDir : GetDeltaMoveDirection(delta);
+
+            if (ShouldLogMove(targetCell, moveDir, pathIndex))
             {
-                moveDir = new Vector2(0f, Mathf.Sign(alignDelta.y));
-            }
-            else if (wantsVerticalStep && Mathf.Abs(alignDelta.x) > reachThreshold)
-            {
-                moveDir = new Vector2(Mathf.Sign(alignDelta.x), 0f);
-            }
-            else if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
-            {
-                moveDir = new Vector2(Mathf.Sign(delta.x), 0f);
-            }
-            else
-            {
-                moveDir = new Vector2(0f, Mathf.Sign(delta.y));
+                BotRuntimeDebugLog.LogBotMoveCommand(player, currentCell, targetCell, moveDir, pathIndex, pathCount);
+                lastLoggedMoveDirection = moveDir;
+                lastLoggedMoveTargetCell = targetCell;
+                lastLoggedPathIndex = pathIndex;
             }
 
             player.SetMoveDirection(moveDir);
@@ -90,7 +99,7 @@ namespace _Project.Gameplay.AI.Scripts
 
             Vector3Int nextCell = blackboard.CurrentPath[blackboard.CurrentPathIndex];
 
-            if (IsAtCell(nextCell))
+            while (blackboard.CurrentPathIndex < blackboard.CurrentPath.Count && IsAtCell(nextCell))
             {
                 blackboard.CurrentPathIndex++;
 
@@ -105,11 +114,12 @@ namespace _Project.Gameplay.AI.Scripts
 
             if (IsStuck(blackboard))
             {
+                BotRuntimeDebugLog.LogBotStuck(player, player.GetCurrentCell(), nextCell, blackboard.CurrentPathIndex, blackboard.CurrentPath.Count);
                 Stop();
                 return true;
             }
 
-            MoveTowardsCell(nextCell);
+            MoveTowardsCell(nextCell, blackboard.CurrentPathIndex, blackboard.CurrentPath.Count);
             return false;
         }
 
@@ -118,8 +128,11 @@ namespace _Project.Gameplay.AI.Scripts
             if (referenceTilemap == null || player == null)
                 return false;
 
+            if (player.GetCurrentCell() == cell)
+                return true;
+
             Vector3 targetWorld = referenceTilemap.GetCellCenterWorld(cell);
-            return Vector2.Distance(player.GetNavigationWorldPosition(), targetWorld) <= reachThreshold;
+            return Vector2.Distance(player.GetNavigationWorldPosition(), targetWorld) <= reachThreshold * 1.5f;
         }
 
         public bool TryPlaceBomb()
@@ -156,6 +169,75 @@ namespace _Project.Gameplay.AI.Scripts
 
             return Time.time - blackboard.LastProgressTime >= StuckTimeout;
         }
+
+        private bool ShouldLogMove(Vector3Int targetCell, Vector2 moveDir, int pathIndex)
+        {
+            if (!lastLoggedMoveTargetCell.HasValue)
+                return true;
+
+            return lastLoggedMoveTargetCell.Value != targetCell
+                   || lastLoggedMoveDirection != moveDir
+                   || lastLoggedPathIndex != pathIndex;
+        }
+
+        private Vector2 GetPrimaryMoveDirection(Vector3Int currentCell, Vector3Int targetCell, Vector2 delta)
+        {
+            int cellDeltaX = targetCell.x - currentCell.x;
+            int cellDeltaY = targetCell.y - currentCell.y;
+
+            if (cellDeltaX != 0)
+                return new Vector2(Mathf.Sign(cellDeltaX), 0f);
+
+            if (cellDeltaY != 0)
+                return new Vector2(0f, Mathf.Sign(cellDeltaY));
+
+            return GetDeltaMoveDirection(delta);
+        }
+
+        private Vector2 GetDeltaMoveDirection(Vector2 delta)
+        {
+            if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
+                return new Vector2(Mathf.Sign(delta.x), 0f);
+
+            if (Mathf.Abs(delta.y) > 0f)
+                return new Vector2(0f, Mathf.Sign(delta.y));
+
+            return Vector2.zero;
+        }
+
+        private bool TryGetAlignmentDirection(Vector3Int currentCell, Vector3Int targetCell, Vector2 alignDelta, out Vector2 alignmentDir)
+        {
+            alignmentDir = Vector2.zero;
+
+            bool movingHorizontally = targetCell.x != currentCell.x;
+            bool movingVertically = targetCell.y != currentCell.y;
+
+            if (movingHorizontally && Mathf.Abs(alignDelta.y) > reachThreshold)
+            {
+                alignmentDir = new Vector2(0f, Mathf.Sign(alignDelta.y));
+                return true;
+            }
+
+            if (movingVertically && Mathf.Abs(alignDelta.x) > reachThreshold)
+            {
+                alignmentDir = new Vector2(Mathf.Sign(alignDelta.x), 0f);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool CanTraverseToward(Vector3Int currentCell, Vector2 direction)
+        {
+            if (direction == Vector2.zero)
+                return false;
+
+            MapContext mapContext = player != null ? player.CurrentMapContext : null;
+            if (mapContext == null)
+                return false;
+
+            Vector3Int nextCell = currentCell + new Vector3Int(Mathf.RoundToInt(direction.x), Mathf.RoundToInt(direction.y), 0);
+            return BotGridUtility.IsWalkable(nextCell, mapContext);
+        }
     }
 }
-

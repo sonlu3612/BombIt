@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace _Project.Gameplay.AI.Scripts
 {
@@ -18,6 +18,7 @@ namespace _Project.Gameplay.AI.Scripts
 
         [Header("Wander")]
         public int wanderMaxSearchCells = 24;
+        public int wanderMinPathLength = 4;
         public float idleChance = 0.08f;
         public Vector2 idleDurationRange = new Vector2(0.15f, 0.45f);
 
@@ -25,6 +26,7 @@ namespace _Project.Gameplay.AI.Scripts
         public float itemChance = 0.85f;
         public float attackChance = 0.80f;
         public float breakBlockChance = 0.90f;
+        public float plantBombChance = 0.95f;
 
         [Header("Bomb")]
         public float bombCooldown = 0.35f;

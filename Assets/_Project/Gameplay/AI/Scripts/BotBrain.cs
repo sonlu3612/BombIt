@@ -31,6 +31,7 @@ namespace _Project.Gameplay.AI.Scripts
         private BotActionExecutor executor;
         private BotStateMachine stateMachine;
         private BotSenseContext lastSense;
+        private string lastLoggedPathSignature = string.Empty;
 
         private void Awake()
         {
@@ -66,6 +67,7 @@ namespace _Project.Gameplay.AI.Scripts
             {
                 new EscapeAfterBombState(blackboard, navigator, executor),
                 new EvadeBombState(blackboard, navigator, executor),
+                new PlantBombState(blackboard, navigator, executor, config),
                 new AttackEnemyState(blackboard, navigator, executor, config),
                 new GetItemState(blackboard, navigator, executor, config),
                 new BreakBlockState(blackboard, navigator, executor, config),
@@ -73,7 +75,17 @@ namespace _Project.Gameplay.AI.Scripts
                 new IdleState(blackboard, executor, config)
             };
 
-            stateMachine = new BotStateMachine(states);
+            stateMachine = new BotStateMachine(states, blackboard);
+            stateMachine.StateChanged += OnStateChanged;
+
+            BotRuntimeDebugLog.EnsureSession();
+            BotRuntimeDebugLog.LogBotSpawn(playerController);
+        }
+
+        private void OnDestroy()
+        {
+            if (stateMachine != null)
+                stateMachine.StateChanged -= OnStateChanged;
         }
 
         private void Update()
@@ -89,6 +101,47 @@ namespace _Project.Gameplay.AI.Scripts
             BotSenseContext sense = BotSenseBuilder.Build(playerController, mapContext, config);
             lastSense = sense;
             stateMachine.Update(sense);
+
+            BotRuntimeDebugLog.LogBotThink(
+                playerController,
+                sense,
+                blackboard,
+                stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None");
+
+            LogPathIfChanged();
+        }
+
+        private void OnStateChanged(IBotState previousState, IBotState nextState)
+        {
+            BotRuntimeDebugLog.LogBotStateChange(
+                playerController,
+                previousState != null ? previousState.Name : "None",
+                nextState != null ? nextState.Name : "None",
+                playerController != null ? playerController.GetCurrentCell() : Vector3Int.zero);
+        }
+
+        private void LogPathIfChanged()
+        {
+            string signature = BuildPathSignature();
+            if (signature == lastLoggedPathSignature)
+                return;
+
+            lastLoggedPathSignature = signature;
+            BotRuntimeDebugLog.LogBotPath(
+                playerController,
+                stateMachine != null && stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None",
+                blackboard != null ? blackboard.CurrentPath : null,
+                blackboard != null ? blackboard.CurrentPathIndex : -1,
+                blackboard != null ? blackboard.CurrentTargetCell : null,
+                blackboard != null ? blackboard.EscapeCell : null);
+        }
+
+        private string BuildPathSignature()
+        {
+            if (blackboard == null || blackboard.CurrentPath == null || blackboard.CurrentPath.Count == 0)
+                return "none";
+
+            return $"{blackboard.CurrentPathIndex}|{string.Join(">", blackboard.CurrentPath)}|target={blackboard.CurrentTargetCell}|escape={blackboard.EscapeCell}";
         }
 
         private void OnDrawGizmos()
@@ -202,3 +255,5 @@ namespace _Project.Gameplay.AI.Scripts
         }
     }
 }
+
+

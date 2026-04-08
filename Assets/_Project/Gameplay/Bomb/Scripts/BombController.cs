@@ -1,24 +1,27 @@
-﻿using Assets._Project.Gameplay.Bomb.Scripts;
+using Assets._Project.Gameplay.Bomb.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using _Project.Gameplay.AI.Scripts;
+using _Project.Gameplay.Map.Scripts;
+using _Project.Gameplay.Player.Scripts;
 
 namespace _Project.Gameplay.Bomb.Scripts
 {
     public class BombController : MonoBehaviour
     {
-        private _Project.Gameplay.Player.Scripts.PlayerController playerController;
         private Domain.Bomb bombData;
         private Action onExplode;
-        private bool hasDamagedPlayerThisExplosion;
+        private readonly HashSet<int> damagedPlayerIdsThisExplosion = new();
         private float spawnedAt;
+        private GridOccupancyService occupancyService;
+        private bool registeredInOccupancy;
 
         public Vector3Int CurrentCell => GetBombCell();
         public int Range => bombData != null ? bombData.range : 1;
         public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
-
 
         [Header("Map References")]
         [SerializeField] private Tilemap wallTilemap;
@@ -33,10 +36,10 @@ namespace _Project.Gameplay.Bomb.Scripts
         [SerializeField] private GameObject explosionHitBlock;
 
         [Header("Visual Offset")]
-        [SerializeField] private float middleVisualOffset = 0f;
-        [SerializeField] private float endVisualOffset = 0f;
-        [SerializeField] private float hitWallVisualOffset = 0f;
-        [SerializeField] private float hitBlockVisualOffset = 0f;
+        [SerializeField] private float middleVisualOffset;
+        [SerializeField] private float endVisualOffset;
+        [SerializeField] private float hitWallVisualOffset;
+        [SerializeField] private float hitBlockVisualOffset;
 
         [Header("Debug")]
         [SerializeField] private bool debugExplosionHitbox = true;
@@ -53,6 +56,7 @@ namespace _Project.Gameplay.Bomb.Scripts
             Vector2Int.right
         };
 
+        [Obsolete]
         public void Init(
             Domain.Bomb data,
             Tilemap wallMap,
@@ -68,40 +72,53 @@ namespace _Project.Gameplay.Bomb.Scripts
             spawnedAt = Time.time;
 
             StartCoroutine(ExplodeAfterTime());
-        }
 
-
-
-        private Vector3 GetVisualSpawnPosition(Vector3Int cell, Vector2Int dir, float visualOffset)
-        {
-            Vector3 pos = GetCellCenterWorld(cell);
-            pos -= (Vector3)((Vector2)dir * visualOffset);
-            return pos;
-        }
-        private void FindPlayer()
-        {
-            if (playerController == null)
+            MapContext context = FindObjectOfType<MapContext>();
+            if (context != null)
             {
-                playerController = FindObjectOfType<_Project.Gameplay.Player.Scripts.PlayerController>();
+                occupancyService = context.GridOccupancyService;
+
+                if (occupancyService != null)
+                {
+                    occupancyService.RegisterBomb(this, CurrentCell);
+                    registeredInOccupancy = true;
+                }
             }
         }
 
-        private void DamagePlayerAtCell(Vector3Int explosionCell)
+        private void UnregisterFromOccupancy()
         {
-            if (hasDamagedPlayerThisExplosion) return;
+            if (!registeredInOccupancy || occupancyService == null || bombData == null)
+                return;
 
-            FindPlayer();
-            if (playerController == null) return;
+            occupancyService.UnregisterBomb(this, CurrentCell);
+            registeredInOccupancy = false;
+        }
 
-            Vector3Int playerCell = playerController.GetCurrentCell();
+        private void DamagePlayersAtCell(Vector3Int explosionCell)
+        {
+            PlayerController[] players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+            if (players == null || players.Length == 0)
+                return;
 
-            Debug.Log($"Explosion cell = {explosionCell}, Player cell = {playerCell}");
-
-            if (playerCell == explosionCell)
+            foreach (PlayerController player in players)
             {
-                Debug.Log("PLAYER HIT");
-                hasDamagedPlayerThisExplosion = true;
-                playerController.TakeDamage();
+                if (player == null)
+                    continue;
+
+                int playerId = player.GetInstanceID();
+                if (damagedPlayerIdsThisExplosion.Contains(playerId))
+                    continue;
+
+                Vector3Int playerCell = player.GetCurrentCell();
+                Debug.Log($"Explosion cell = {explosionCell}, Player cell = {playerCell}, Player = {player.name}");
+
+                if (playerCell != explosionCell)
+                    continue;
+
+                Debug.Log($"PLAYER HIT: {player.name}");
+                damagedPlayerIdsThisExplosion.Add(playerId);
+                player.TakeDamage();
             }
         }
 
@@ -109,10 +126,16 @@ namespace _Project.Gameplay.Bomb.Scripts
         {
             yield return new WaitForSeconds(bombData.explodeTime);
 
+            UnregisterFromOccupancy();
             Explode();
             onExplode?.Invoke();
 
             Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            UnregisterFromOccupancy();
         }
 
         private Vector3Int GetBombCell()
@@ -144,19 +167,18 @@ namespace _Project.Gameplay.Bomb.Scripts
 
         private void Explode()
         {
-            hasDamagedPlayerThisExplosion = false;
+            damagedPlayerIdsThisExplosion.Clear();
 
             Vector3Int centerCell = GetBombCell();
+            BotRuntimeDebugLog.LogBombExploded(this, centerCell, bombData != null ? bombData.range : 1);
 
             GameObject center = Instantiate(explosionCenter, transform.position, Quaternion.identity);
             center.GetComponent<Explosion>()?.Play();
 
-            DamagePlayerAtCell(centerCell);
+            DamagePlayersAtCell(centerCell);
 
             foreach (Vector2Int dir in directions)
-            {
                 ExplodeDirectionVisualOld(dir);
-            }
         }
 
         private void ExplodeDirectionVisualOld(Vector2Int dir)
@@ -180,26 +202,25 @@ namespace _Project.Gameplay.Bomb.Scripts
                 if (mapBuilder != null && mapBuilder.HasBlock(cell))
                 {
                     mapBuilder.DestroyBlockAt(cell);
-                    DamagePlayerAtCell(cell);
+                    DamagePlayersAtCell(cell);
 
                     GameObject blockPrefab = explosionHitBlock != null ? explosionHitBlock : explosionEnd;
-
-                    // CHỈ HitBlock mới vào giữa ô
                     Vector3 blockPos = GetCellCenterWorld(cell);
                     SpawnExplosion(blockPrefab, blockPos, rotation);
                     break;
                 }
 
-                DamagePlayerAtCell(cell);
+                DamagePlayersAtCell(cell);
 
-                GameObject prefab = (i == bombData.range) ? explosionEnd : explosionMiddle;
+                GameObject prefab = i == bombData.range ? explosionEnd : explosionMiddle;
                 SpawnExplosion(prefab, visualPos, rotation);
             }
         }
 
         private void SpawnExplosion(GameObject prefab, Vector3 pos, Quaternion rotation)
         {
-            if (prefab == null) return;
+            if (prefab == null)
+                return;
 
             GameObject obj = Instantiate(prefab, pos, rotation);
             obj.GetComponent<Explosion>()?.Play();
@@ -218,7 +239,8 @@ namespace _Project.Gameplay.Bomb.Scripts
 
         private void OnDrawGizmosSelected()
         {
-            if (!debugExplosionHitbox) return;
+            if (!debugExplosionHitbox)
+                return;
 
             Vector2Int bombPos = Application.isPlaying && bombData != null
                 ? bombData.position
@@ -242,9 +264,7 @@ namespace _Project.Gameplay.Bomb.Scripts
                     DrawCell(cell2D, debugRangeColor);
 
                     if (mapBuilder != null && mapBuilder.HasBlock(cell))
-                    {
                         break;
-                    }
                 }
             }
         }

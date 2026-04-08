@@ -55,17 +55,44 @@ namespace _Project.Gameplay.AI.Scripts
                     if (visited.Contains(next))
                         continue;
 
-                    if (!BotGridUtility.IsWalkable(next, mapContext))
+                    GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
+
+
+                    if (occupancy != null)
                     {
-                        LastRejectedSolid.Add(next);
-                        continue;
+                        if (occupancy.IsStaticallyBlocked(next))
+                        {
+                            LastRejectedSolid.Add(next);
+                            continue;
+                        }
+
+                        if (blockedCells != null && blockedCells.Contains(next))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
+
+                        if (occupancy.IsDynamicallyBlocked(next, null, true, true))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (!BotGridUtility.IsWalkable(next, mapContext))
+                        {
+                            LastRejectedSolid.Add(next);
+                            continue;
+                        }
+
+                        if (blockedCells != null && blockedCells.Contains(next))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
                     }
 
-                    if (blockedCells != null && blockedCells.Contains(next))
-                    {
-                        LastRejectedBlocked.Add(next);
-                        continue;
-                    }
 
                     if (dangerCells != null && dangerCells.Contains(next))
                     {

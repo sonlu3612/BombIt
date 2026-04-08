@@ -1,3 +1,4 @@
+using _Project.Gameplay.AI.Scripts;
 using _Project.Gameplay.Bomb.Scripts;
 using _Project.Gameplay.Map.Scripts;
 using UnityEngine;
@@ -15,12 +16,14 @@ namespace _Project.Gameplay.Player.Scripts
         private PlayerMovement movement;
 
         private MapContext mapContext;
+        private Collider2D cachedCollider;
 
         public Vector2 inputDir;
         private Vector2 lastDir = Vector2.down;
 
         [SerializeField] private GameObject bombPrefab;
         [SerializeField] private Transform feetPoint;
+        [SerializeField] private float navigationBottomInset = 0.08f;
 
         public int BombCapacity => player != null ? player.BombCount : 1;
         public int BombRangeStat => player != null ? player.BombRange : 1;
@@ -28,7 +31,7 @@ namespace _Project.Gameplay.Player.Scripts
         public int HealthStat => player != null ? player.Health : 1;
         public int ActiveBombCount => currentBomb;
         public bool CanPlaceBomb => player != null && currentBomb < player.BombCount;
-
+        public MapContext CurrentMapContext => mapContext;
 
         [Header("Debug Player Hitbox")]
         [SerializeField] private bool debugPlayerCell = true;
@@ -38,18 +41,20 @@ namespace _Project.Gameplay.Player.Scripts
         [SerializeField] private bool debugCollider = true;
         [SerializeField] private Color debugColliderColor = Color.cyan;
 
-        private int currentBomb = 0;
+        private int currentBomb;
 
         public void Init(MapContext context)
         {
             mapContext = context;
         }
 
+        [System.Obsolete]
         private void Start()
         {
             player = new Domain.Player();
             anim = GetComponent<Animator>();
             movement = GetComponent<PlayerMovement>();
+            cachedCollider = GetComponent<Collider2D>();
 
             inputDir = Vector2.zero;
 
@@ -58,11 +63,12 @@ namespace _Project.Gameplay.Player.Scripts
                 mapContext = FindObjectOfType<MapContext>();
 
                 if (mapContext == null)
-                {
                     Debug.LogError($"[{nameof(PlayerController)}] No MapContext found for {gameObject.name}.", this);
-                }
             }
+
+            movement?.InitializeWithMap(mapContext);
         }
+
 
         private void Update()
         {
@@ -106,8 +112,7 @@ namespace _Project.Gameplay.Player.Scripts
                         cell = new Vector3Int(
                             Mathf.FloorToInt(samplePos.x),
                             Mathf.FloorToInt(samplePos.y),
-                            0
-                        );
+                            0);
                     }
                 }
 
@@ -166,28 +171,39 @@ namespace _Project.Gameplay.Player.Scripts
 
         public Vector3Int GetCurrentCell()
         {
+            if (movement != null && movement.IsInitialized)
+                return movement.CurrentCell;
+
             Vector3 samplePos = GetNavigationWorldPosition();
 
             if (mapContext != null && mapContext.ReferenceTilemap != null)
-            {
                 return mapContext.ReferenceTilemap.WorldToCell(samplePos);
-            }
 
             if (mapContext != null && mapContext.WallTilemap != null)
-            {
                 return mapContext.WallTilemap.WorldToCell(samplePos);
-            }
 
             return new Vector3Int(
-                Mathf.FloorToInt(samplePos.x),
-                Mathf.FloorToInt(samplePos.y),
-                0
-            );
+                Mathf.RoundToInt(samplePos.x),
+                Mathf.RoundToInt(samplePos.y),
+                0);
         }
+
 
         public Vector3 GetNavigationWorldPosition()
         {
-            return feetPoint != null ? feetPoint.position : transform.position;
+            if (feetPoint != null)
+                return feetPoint.position;
+
+            if (cachedCollider == null)
+                cachedCollider = GetComponent<Collider2D>();
+
+            if (cachedCollider != null)
+            {
+                Bounds bounds = cachedCollider.bounds;
+                return new Vector3(bounds.center.x, bounds.min.y + navigationBottomInset, transform.position.z);
+            }
+
+            return transform.position;
         }
 
         private Vector3 GetCellCenterWorld(Vector3Int cell)
@@ -204,9 +220,7 @@ namespace _Project.Gameplay.Player.Scripts
         private void HandleMovement()
         {
             if (inputDir != Vector2.zero)
-            {
                 lastDir = inputDir;
-            }
 
             movement.Move(inputDir, player.Speed);
         }
@@ -238,14 +252,13 @@ namespace _Project.Gameplay.Player.Scripts
             player.TakeDamage();
 
             if (player.Health <= 0)
-            {
                 Die();
-            }
         }
 
         public void PlaceBomb()
         {
-            if (currentBomb >= player.BombCount) return;
+            if (currentBomb >= player.BombCount)
+                return;
 
             if (mapContext == null)
             {
@@ -276,10 +289,10 @@ namespace _Project.Gameplay.Player.Scripts
                 mapContext.WallTilemap,
                 mapContext.ReferenceTilemap,
                 mapContext.MapBuilder,
-                () => currentBomb--
-            );
+                () => currentBomb--);
 
             currentBomb++;
+            BotRuntimeDebugLog.LogBombPlaced(this, cell, player.BombRange, currentBomb, player.BombCount);
         }
 
         private void Die()
@@ -300,9 +313,12 @@ namespace _Project.Gameplay.Player.Scripts
         {
             inputDir = Vector2.zero;
         }
+
         public void AddSpeed(float amount) => player.AddSpeed(amount);
         public void AddBomb(int amount) => player.AddBombCount(amount);
         public void AddRange(int amount) => player.AddBombRange(amount);
         public void AddHealth(int amount) => player.AddHealth(amount);
     }
 }
+
+

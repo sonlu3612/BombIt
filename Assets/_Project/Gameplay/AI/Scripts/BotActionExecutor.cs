@@ -294,20 +294,20 @@ namespace _Project.Gameplay.AI.Scripts
                 ? occupancy.IsCellWalkable(targetCell, player, true, false)
                 : BotGridUtility.IsWalkable(targetCell, mapContext);
 
-            BotMovementTraceLog.LogExecutorDecision(
-                player,
-                logicCell,
-                occupancyCell,
-                targetCell,
-                worldPosition,
-                delta,
-                alignDelta,
-                moveDirection,
-                usedAlignment,
-                targetWithinBounds,
-                targetWalkable,
-                pathIndex,
-                pathCount);
+            // BotMovementTraceLog.LogExecutorDecision(
+            //     player,
+            //     logicCell,
+            //     occupancyCell,
+            //     targetCell,
+            //     worldPosition,
+            //     delta,
+            //     alignDelta,
+            //     moveDirection,
+            //     usedAlignment,
+            //     targetWithinBounds,
+            //     targetWalkable,
+            //     pathIndex,
+            //     pathCount);
         }
     }
 }

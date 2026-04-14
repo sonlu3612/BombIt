@@ -35,16 +35,16 @@ namespace _Project.Gameplay.AI.Scripts
             if (start == target)
             {
                 LastPath = new List<Vector3Int> { start };
-                BotMovementTraceLog.LogPathSummary(
-                    "start-is-target",
-                    start,
-                    target,
-                    mapContext,
-                    1,
-                    0,
-                    0,
-                    0,
-                    LastPath.Count);
+                // BotMovementTraceLog.LogPathSummary(
+                //     "start-is-target",
+                //     start,
+                //     target,
+                //     mapContext,
+                //     1,
+                //     0,
+                //     0,
+                //     0,
+                //     LastPath.Count);
                 return LastPath;
             }
 
@@ -68,16 +68,16 @@ namespace _Project.Gameplay.AI.Scripts
                 if (current == target)
                 {
                     LastPath = ReconstructPath(cameFrom, start, target);
-                    BotMovementTraceLog.LogPathSummary(
-                        "found",
-                        start,
-                        target,
-                        mapContext,
-                        LastVisited.Count,
-                        LastRejectedSolid.Count,
-                        LastRejectedBlocked.Count,
-                        LastRejectedDanger.Count,
-                        LastPath.Count);
+                    // BotMovementTraceLog.LogPathSummary(
+                    //     "found",
+                    //     start,
+                    //     target,
+                    //     mapContext,
+                    //     LastVisited.Count,
+                    //     LastRejectedSolid.Count,
+                    //     LastRejectedBlocked.Count,
+                    //     LastRejectedDanger.Count,
+                    //     LastPath.Count);
                     return LastPath;
                 }
 
@@ -156,16 +156,16 @@ namespace _Project.Gameplay.AI.Scripts
             }
 
             LastPath = null;
-            BotMovementTraceLog.LogPathSummary(
-                "failed",
-                start,
-                target,
-                mapContext,
-                LastVisited.Count,
-                LastRejectedSolid.Count,
-                LastRejectedBlocked.Count,
-                LastRejectedDanger.Count,
-                0);
+            // BotMovementTraceLog.LogPathSummary(
+            //     "failed",
+            //     start,
+            //     target,
+            //     mapContext,
+            //     LastVisited.Count,
+            //     LastRejectedSolid.Count,
+            //     LastRejectedBlocked.Count,
+            //     LastRejectedDanger.Count,
+            //     0);
             return null;
         }
 

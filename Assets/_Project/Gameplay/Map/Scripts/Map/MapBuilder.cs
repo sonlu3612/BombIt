@@ -22,7 +22,7 @@ public class MapBuilder : MonoBehaviour
 
         MapContext mapContext = Object.FindAnyObjectByType<MapContext>();
         if (mapContext != null)
-            BotRuntimeDebugLog.LogMapSnapshot(mapContext);
+            {} // BotRuntimeDebugLog.LogMapSnapshot(mapContext);
     }
 
     private void BuildMap()
@@ -116,7 +116,7 @@ public class MapBuilder : MonoBehaviour
         }
 
         if (destroyed)
-            BotRuntimeDebugLog.LogBlockDestroyed(cell);
+            {} // BotRuntimeDebugLog.LogBlockDestroyed(cell);
 
         return destroyed;
     }

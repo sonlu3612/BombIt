@@ -56,9 +56,9 @@ public class PlayerSpawner : MonoBehaviour
 
     private void Start()
     {
-        mapContext = Object.FindFirstObjectByType<MapContext>();
-        roundHudController = Object.FindFirstObjectByType<MapRoundHudController>();
-        resultOverlayController = Object.FindFirstObjectByType<MatchResultOverlayController>();
+        mapContext = Object.FindAnyObjectByType<MapContext>();
+        roundHudController = Object.FindAnyObjectByType<MapRoundHudController>();
+        resultOverlayController = Object.FindAnyObjectByType<MatchResultOverlayController>();
         ActorHudRegistry.Clear();
         InitSpawnPoints();
         UpdateResolvedSpawnInfo();
@@ -213,7 +213,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         return useCustomWorldSpawnPoints
             && customWorldSpawnPoints != null
-            && customWorldSpawnPoints.Length >= 4;
+            && customWorldSpawnPoints.Length >= 1;
     }
 
     private bool TryInitCustomWorldSpawnPoints()
@@ -403,7 +403,7 @@ public class PlayerSpawner : MonoBehaviour
         if (mapContext != null)
             return mapContext;
 
-        return FindFirstObjectByType<MapContext>();
+        return FindAnyObjectByType<MapContext>();
     }
 
     private bool TrySpawnSessionActors()
@@ -524,8 +524,7 @@ public class PlayerSpawner : MonoBehaviour
         if (character == null || character.animatorController == null)
             return;
 
-        Animator animator = actor.GetComponent<Animator>();
-        if (animator == null)
+        if (!actor.TryGetComponent<Animator>(out var animator))
             return;
 
         animator.runtimeAnimatorController = character.animatorController;
@@ -535,8 +534,7 @@ public class PlayerSpawner : MonoBehaviour
 
     private static void ConfigureInput(GameObject actor, int humanIndex, bool isBot)
     {
-        PlayerInput playerInput = actor.GetComponent<PlayerInput>();
-        if (playerInput == null)
+        if (!actor.TryGetComponent<PlayerInput>(out var playerInput))
             return;
 
         if (isBot)
@@ -553,8 +551,7 @@ public class PlayerSpawner : MonoBehaviour
 
     private static void ConfigureBot(GameObject actor, bool isBot, BotConfig botConfig)
     {
-        BotBrain botBrain = actor.GetComponent<BotBrain>();
-        if (botBrain == null)
+        if (!actor.TryGetComponent<BotBrain>(out var botBrain))
             return;
 
         botBrain.enabled = isBot;

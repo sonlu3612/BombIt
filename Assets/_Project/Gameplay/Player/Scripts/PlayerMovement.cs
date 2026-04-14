@@ -1,3 +1,4 @@
+using _Project.Gameplay.AI.Scripts;
 using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
@@ -18,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float cellReachThreshold = 0.04f;
     [SerializeField] private bool blockPlayerCells = true;
     [SerializeField] private bool forceTriggerCollider = true;
+    [SerializeField] private bool allowHeldMoveQueueForBots = false;
 
     private Rigidbody2D rb;
     private Collider2D hitbox;
@@ -32,6 +34,8 @@ public class PlayerMovement : MonoBehaviour
     private bool registeredWithOccupancy;
 
     private Vector3 navigationOffsetFromRoot;
+    private Vector3 navigationCellOffset;
+    private Vector3Int settledCell;
     private Vector3Int currentCell;
     private Vector3Int? targetCell;
     private Vector2 currentMoveDirection;
@@ -39,10 +43,22 @@ public class PlayerMovement : MonoBehaviour
     private MovementAxis activeMoveAxis;
 
     public bool IsInitialized => initialized;
+    public Vector3Int SettledCell => settledCell;
     public Vector3Int CurrentCell => currentCell;
     public Vector2 CurrentMoveDirection => currentMoveDirection;
     public bool IsMoving => isMoving;
     public Vector3Int? TargetCell => targetCell;
+    public Vector3 GetNavigationAnchorWorld(Vector3Int cell) => GetCellNavigationAnchor(cell);
+    public bool IsSettledOnCurrentCell()
+    {
+        if (!initialized || controller == null)
+            return true;
+
+        if (targetCell.HasValue || currentCell != settledCell)
+            return false;
+
+        return Vector2.Distance(controller.GetNavigationWorldPosition(), GetCellNavigationAnchor(currentCell)) <= cellReachThreshold * 1.5f;
+    }
 
     private void Awake()
     {
@@ -74,13 +90,32 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        navigationOffsetFromRoot = transform.position - controller.GetNavigationWorldPosition();
-        currentCell = occupancy.WorldToCell(controller.GetNavigationWorldPosition());
+        Vector3 initialNavigationPosition = controller.GetNavigationWorldPosition();
+        navigationOffsetFromRoot = transform.position - initialNavigationPosition;
+        currentCell = occupancy.WorldToCell(initialNavigationPosition);
+        // navigationCellOffset is intentionally zero: the nav anchor IS the cell center.
+        // Any visual offset (feet below sprite center) is already encoded in navigationOffsetFromRoot.
+        // Capturing spawn misalignment here would permanently bake the offset into all movement.
+        navigationCellOffset = Vector3.zero;
+        settledCell = currentCell;
 
         SnapRootToCell(currentCell);
         occupancy.RegisterPlayer(controller, currentCell);
         registeredWithOccupancy = true;
         initialized = true;
+
+        BotMovementTraceLog.LogPlayerMovement(
+            controller,
+            "INIT",
+            settledCell,
+            currentCell,
+            targetCell,
+            controller.GetNavigationWorldPosition(),
+            GetCellNavigationAnchor(currentCell),
+            requestedDirection,
+            currentMoveDirection,
+            isMoving,
+            $"rootOffset={navigationOffsetFromRoot.x:0.###},{navigationOffsetFromRoot.y:0.###},{navigationOffsetFromRoot.z:0.###} navOffset={navigationCellOffset.x:0.###},{navigationCellOffset.y:0.###},{navigationCellOffset.z:0.###}");
     }
 
     public void Move(Vector2 dir, float speed)
@@ -134,7 +169,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         Vector3 navPosition = controller.GetNavigationWorldPosition();
-        Vector3 currentCenter = occupancy.GetCellCenterWorld(currentCell);
+        Vector3 currentCenter = GetCellNavigationAnchor(currentCell);
 
         bool horizontalMove = Mathf.Abs(requestedDirection.x) > 0.1f;
 
@@ -154,12 +189,33 @@ public class PlayerMovement : MonoBehaviour
 
             if (!occupancy.IsCellWalkable(nextCell, controller, true, blockPlayerCells))
             {
+                BotMovementTraceLog.LogBlockedAttempt(
+                    controller,
+                    settledCell,
+                    currentCell,
+                    nextCell,
+                    requestedDirection,
+                    BotGridUtility.IsWithinBounds(nextCell, occupancy.MapContext),
+                    occupancy.IsStaticallyBlocked(nextCell),
+                    occupancy.IsDynamicallyBlocked(nextCell, controller, true, blockPlayerCells));
                 SnapBackToCellCenter(deltaTime);
                 return;
             }
 
             targetCell = nextCell;
             activeMoveAxis = MovementAxis.Horizontal;
+            BotMovementTraceLog.LogPlayerMovement(
+                controller,
+                "START_STEP",
+                settledCell,
+                currentCell,
+                targetCell,
+                navPosition,
+                GetCellNavigationAnchor(currentCell),
+                requestedDirection,
+                currentMoveDirection,
+                isMoving,
+                "horizontal");
             ContinueMoveToTarget(deltaTime);
             return;
         }
@@ -178,12 +234,33 @@ public class PlayerMovement : MonoBehaviour
 
         if (!occupancy.IsCellWalkable(verticalCell, controller, true, blockPlayerCells))
         {
+            BotMovementTraceLog.LogBlockedAttempt(
+                controller,
+                settledCell,
+                currentCell,
+                verticalCell,
+                requestedDirection,
+                BotGridUtility.IsWithinBounds(verticalCell, occupancy.MapContext),
+                occupancy.IsStaticallyBlocked(verticalCell),
+                occupancy.IsDynamicallyBlocked(verticalCell, controller, true, blockPlayerCells));
             SnapBackToCellCenter(deltaTime);
             return;
         }
 
         targetCell = verticalCell;
         activeMoveAxis = MovementAxis.Vertical;
+        BotMovementTraceLog.LogPlayerMovement(
+            controller,
+            "START_STEP",
+            settledCell,
+            currentCell,
+            targetCell,
+            navPosition,
+            GetCellNavigationAnchor(currentCell),
+            requestedDirection,
+            currentMoveDirection,
+            isMoving,
+            "vertical");
         ContinueMoveToTarget(deltaTime);
     }
 
@@ -197,8 +274,8 @@ public class PlayerMovement : MonoBehaviour
             ? activeMoveAxis
             : destinationCell.x != currentCell.x ? MovementAxis.Horizontal : MovementAxis.Vertical;
 
-        Vector3 currentCenter = occupancy.GetCellCenterWorld(currentCell);
-        Vector3 navTarget = occupancy.GetCellCenterWorld(destinationCell);
+        Vector3 currentCenter = GetCellNavigationAnchor(currentCell);
+        Vector3 navTarget = GetCellNavigationAnchor(destinationCell);
 
         if (axis == MovementAxis.Horizontal)
             navTarget.y = currentCenter.y;
@@ -212,19 +289,33 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3Int previousCell = currentCell;
             currentCell = destinationCell;
+            settledCell = destinationCell;
             targetCell = null;
             activeMoveAxis = MovementAxis.None;
 
             occupancy.MovePlayer(controller, previousCell, currentCell);
 
-            bool continuesMoving = TryQueueHeldMoveFromCurrentCell();
+            bool continuesMoving = ShouldAutoQueueHeldMove() && TryQueueHeldMoveFromCurrentCell();
             SnapRootToCell(currentCell, !continuesMoving);
+
+            BotMovementTraceLog.LogPlayerMovement(
+                controller,
+                "COMMIT_CELL",
+                settledCell,
+                currentCell,
+                targetCell,
+                controller.GetNavigationWorldPosition(),
+                GetCellNavigationAnchor(currentCell),
+                requestedDirection,
+                currentMoveDirection,
+                isMoving,
+                $"continues={continuesMoving}");
         }
     }
 
     private void SnapBackToCellCenter(float deltaTime)
     {
-        Vector3 navTarget = occupancy.GetCellCenterWorld(currentCell);
+        Vector3 navTarget = GetCellNavigationAnchor(currentCell);
 
         if (Vector2.Distance(controller.GetNavigationWorldPosition(), navTarget) <= cellReachThreshold)
         {
@@ -290,9 +381,20 @@ public class PlayerMovement : MonoBehaviour
         return true;
     }
 
+    private bool ShouldAutoQueueHeldMove()
+    {
+        if (controller == null)
+            return true;
+
+        if (!controller.IsBotControlled)
+            return true;
+
+        return allowHeldMoveQueueForBots;
+    }
+
     private void SnapRootToCell(Vector3Int cell, bool resetMovementState = true)
     {
-        Vector3 navTarget = occupancy.GetCellCenterWorld(cell);
+        Vector3 navTarget = GetCellNavigationAnchor(cell);
         Vector3 rootTarget = navTarget + navigationOffsetFromRoot;
         rootTarget.z = transform.position.z;
 
@@ -314,6 +416,25 @@ public class PlayerMovement : MonoBehaviour
         Vector3Int previousCell = currentCell;
         currentCell = sampledCell;
         occupancy.MovePlayer(controller, previousCell, currentCell);
+
+        BotMovementTraceLog.LogPlayerMovement(
+            controller,
+            "CROSS_BOUNDARY",
+            settledCell,
+            currentCell,
+            targetCell,
+            navigationPosition,
+            GetCellNavigationAnchor(destinationCell),
+            requestedDirection,
+            currentMoveDirection,
+            isMoving,
+            "occupancy advanced before settle");
+    }
+
+    private Vector3 GetCellNavigationAnchor(Vector3Int cell)
+    {
+        Vector3 center = occupancy.GetCellCenterWorld(cell);
+        return center + navigationCellOffset;
     }
 
     private void UpdateMovementState(Vector3 navigationDelta)

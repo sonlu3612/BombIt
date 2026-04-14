@@ -20,7 +20,7 @@ public class MapBuilder : MonoBehaviour
         BuildMap();
         LogBuildState("After Build");
 
-        MapContext mapContext = Object.FindFirstObjectByType<MapContext>();
+        MapContext mapContext = Object.FindAnyObjectByType<MapContext>();
         if (mapContext != null)
             BotRuntimeDebugLog.LogMapSnapshot(mapContext);
     }

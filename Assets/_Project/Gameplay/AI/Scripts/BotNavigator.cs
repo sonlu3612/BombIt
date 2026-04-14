@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Project.Gameplay.Map.Scripts;
+using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
 
 namespace _Project.Gameplay.AI.Scripts
@@ -26,57 +27,75 @@ namespace _Project.Gameplay.AI.Scripts
             Vector3Int start,
             Vector3Int target,
             HashSet<Vector3Int> dangerCells = null,
-            HashSet<Vector3Int> blockedCells = null)
+            HashSet<Vector3Int> blockedCells = null,
+            PlayerController ignorePlayer = null)
         {
             BeginDebugSearch(start, target);
 
             if (start == target)
             {
                 LastPath = new List<Vector3Int> { start };
+                BotMovementTraceLog.LogPathSummary("start-is-target", start, target, mapContext, 1, 0, 0, 0, LastPath.Count);
                 return LastPath;
             }
 
+            Queue<Vector3Int> queue = new();
             Dictionary<Vector3Int, Vector3Int> cameFrom = new();
-            Dictionary<Vector3Int, int> gScore = new();
-            Dictionary<Vector3Int, int> fScore = new();
-            HashSet<Vector3Int> openSet = new();
-            HashSet<Vector3Int> closedSet = new();
+            HashSet<Vector3Int> visited = new();
 
-            openSet.Add(start);
-            gScore[start] = 0;
-            fScore[start] = GetHeuristic(start, target);
+            queue.Enqueue(start);
+            visited.Add(start);
             LastVisited.Add(start);
 
-            while (openSet.Count > 0)
+            while (queue.Count > 0)
             {
-                Vector3Int current = GetBestOpenNode(openSet, fScore, gScore);
-                if (current == target)
-                {
-                    LastPath = ReconstructPath(cameFrom, start, target);
-                    return LastPath;
-                }
-
-                openSet.Remove(current);
-                closedSet.Add(current);
+                Vector3Int current = queue.Dequeue();
 
                 foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
                 {
                     Vector3Int next = current + dir;
 
-                    if (closedSet.Contains(next))
+                    if (visited.Contains(next))
                         continue;
 
-                    if (!BotGridUtility.IsWalkable(next, mapContext))
+                    GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
+
+
+                    if (occupancy != null)
                     {
-                        LastRejectedSolid.Add(next);
-                        continue;
+                        if (occupancy.IsStaticallyBlocked(next))
+                        {
+                            LastRejectedSolid.Add(next);
+                            continue;
+                        }
+
+                        if (blockedCells != null && blockedCells.Contains(next))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
+
+                        if (occupancy.IsDynamicallyBlocked(next, ignorePlayer, true, true))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (!BotGridUtility.IsWalkable(next, mapContext))
+                        {
+                            LastRejectedSolid.Add(next);
+                            continue;
+                        }
+
+                        if (blockedCells != null && blockedCells.Contains(next))
+                        {
+                            LastRejectedBlocked.Add(next);
+                            continue;
+                        }
                     }
 
-                    if (blockedCells != null && blockedCells.Contains(next))
-                    {
-                        LastRejectedBlocked.Add(next);
-                        continue;
-                    }
 
                     if (dangerCells != null && dangerCells.Contains(next))
                     {
@@ -84,21 +103,23 @@ namespace _Project.Gameplay.AI.Scripts
                         continue;
                     }
 
-                    int tentativeG = GetScoreOrDefault(gScore, current) + 1;
-                    bool hasExistingScore = gScore.TryGetValue(next, out int existingG);
-                    if (hasExistingScore && tentativeG >= existingG)
-                        continue;
-
+                    visited.Add(next);
                     LastVisited.Add(next);
                     cameFrom[next] = current;
-                    gScore[next] = tentativeG;
-                    fScore[next] = tentativeG + GetHeuristic(next, target);
-                    openSet.Add(next);
 
+                    if (next == target)
+                    {
+                        LastPath = ReconstructPath(cameFrom, start, target);
+                        BotMovementTraceLog.LogPathSummary("found", start, target, mapContext, LastVisited.Count, LastRejectedSolid.Count, LastRejectedBlocked.Count, LastRejectedDanger.Count, LastPath.Count);
+                        return LastPath;
+                    }
+
+                    queue.Enqueue(next);
                 }
             }
 
             LastPath = null;
+            BotMovementTraceLog.LogPathSummary("failed", start, target, mapContext, LastVisited.Count, LastRejectedSolid.Count, LastRejectedBlocked.Count, LastRejectedDanger.Count, 0);
             return null;
         }
 
@@ -106,13 +127,14 @@ namespace _Project.Gameplay.AI.Scripts
             Vector3Int start,
             List<Vector3Int> candidates,
             HashSet<Vector3Int> dangerCells = null,
-            HashSet<Vector3Int> blockedCells = null)
+            HashSet<Vector3Int> blockedCells = null,
+            PlayerController ignorePlayer = null)
         {
             List<Vector3Int> bestPath = null;
 
             foreach (Vector3Int candidate in candidates)
             {
-                List<Vector3Int> path = FindPath(start, candidate, dangerCells, blockedCells);
+                List<Vector3Int> path = FindPath(start, candidate, dangerCells, blockedCells, ignorePlayer);
                 if (path == null)
                     continue;
 
@@ -128,9 +150,10 @@ namespace _Project.Gameplay.AI.Scripts
             Vector3Int start,
             List<Vector3Int> candidates,
             HashSet<Vector3Int> dangerCells = null,
-            HashSet<Vector3Int> blockedCells = null)
+            HashSet<Vector3Int> blockedCells = null,
+            PlayerController ignorePlayer = null)
         {
-            List<Vector3Int> bestPath = FindShortestPathToAny(start, candidates, dangerCells, blockedCells);
+            List<Vector3Int> bestPath = FindShortestPathToAny(start, candidates, dangerCells, blockedCells, ignorePlayer);
             if (bestPath == null || bestPath.Count == 0)
                 return null;
 
@@ -155,45 +178,6 @@ namespace _Project.Gameplay.AI.Scripts
 
             path.Reverse();
             return path;
-        }
-
-        private static int GetHeuristic(Vector3Int from, Vector3Int to)
-        {
-            return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
-        }
-
-        private static int GetScoreOrDefault(Dictionary<Vector3Int, int> scores, Vector3Int cell)
-        {
-            return scores.TryGetValue(cell, out int score) ? score : int.MaxValue;
-        }
-
-        private static Vector3Int GetBestOpenNode(
-            HashSet<Vector3Int> openSet,
-            Dictionary<Vector3Int, int> fScore,
-            Dictionary<Vector3Int, int> gScore)
-        {
-            Vector3Int bestNode = default;
-            int bestF = int.MaxValue;
-            int bestG = int.MaxValue;
-            bool foundAny = false;
-
-            foreach (Vector3Int node in openSet)
-            {
-                int nodeF = GetScoreOrDefault(fScore, node);
-                int nodeG = GetScoreOrDefault(gScore, node);
-
-                if (!foundAny
-                    || nodeF < bestF
-                    || (nodeF == bestF && nodeG < bestG))
-                {
-                    bestNode = node;
-                    bestF = nodeF;
-                    bestG = nodeG;
-                    foundAny = true;
-                }
-            }
-
-            return bestNode;
         }
 
         private void BeginDebugSearch(Vector3Int start, Vector3Int target)

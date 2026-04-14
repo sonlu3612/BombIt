@@ -16,7 +16,7 @@ namespace _Project.Gameplay.Match.Scripts
         {
             if (currentMap == null)
             {
-                currentMap = Object.FindFirstObjectByType<MapContext>();
+                currentMap = Object.FindAnyObjectByType<MapContext>();
             }
 
             if (currentMap == null)

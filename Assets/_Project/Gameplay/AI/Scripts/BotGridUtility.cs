@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using _Project.Gameplay.Map.Scripts;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace _Project.Gameplay.AI.Scripts
 {
@@ -28,25 +29,23 @@ namespace _Project.Gameplay.AI.Scripts
                    mapContext.MapBuilder.HasBlock(cell);
         }
 
-        public static bool IsWithinBounds(Vector3Int cell, MapContext mapContext)
-        {
-            if (mapContext == null)
-                return true;
-
-            if (mapContext.ReferenceTilemap != null)
-                return mapContext.ReferenceTilemap.cellBounds.Contains(cell);
-
-            if (mapContext.WallTilemap != null)
-                return mapContext.WallTilemap.cellBounds.Contains(cell);
-
-            return true;
-        }
-
         public static bool IsWalkable(Vector3Int cell, MapContext mapContext)
         {
             return IsWithinBounds(cell, mapContext)
                    && !IsWall(cell, mapContext)
                    && !HasBlock(cell, mapContext);
+        }
+
+        public static bool IsWithinBounds(Vector3Int cell, MapContext mapContext)
+        {
+            if (mapContext == null)
+                return false;
+
+            Tilemap tilemap = mapContext.ReferenceTilemap != null ? mapContext.ReferenceTilemap : mapContext.WallTilemap;
+            if (tilemap == null)
+                return false;
+
+            return tilemap.cellBounds.Contains(cell);
         }
 
         public static bool IsAdjacent(Vector3Int a, Vector3Int b)

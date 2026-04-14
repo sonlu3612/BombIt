@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace _Project.Gameplay.AI.Scripts.States
@@ -14,6 +14,12 @@ namespace _Project.Gameplay.AI.Scripts.States
         private Vector3Int bombCell;
         private List<Vector3Int> plannedEscapePath;
         private bool finished;
+
+        private bool hasPreparedPlan;
+        private Vector3Int preparedBlockCell;
+        private Vector3Int preparedBombCell;
+        private List<Vector3Int> preparedApproachPath;
+        private List<Vector3Int> preparedEscapePath;
 
         public string Name => "BreakBlock";
         public bool IsFinished => finished;
@@ -32,11 +38,22 @@ namespace _Project.Gameplay.AI.Scripts.States
 
         public bool CanEnter(BotSenseContext sense)
         {
-            return !sense.IsInDanger
-                   && executor.Player != null
-                   && executor.Player.CanPlaceBomb
-                   && sense.BreakableBlocks.Count > 0
-                   && Random.value <= config.breakBlockChance;
+            ClearPreparedPlan();
+
+            if (sense.IsInDanger
+                || executor.Player == null
+                || !executor.Player.CanPlaceBomb
+                || sense.BreakableBlocks.Count == 0
+                || Random.value > config.breakBlockChance)
+            {
+                return false;
+            }
+
+            if (!TryBuildPlan(sense, out preparedBlockCell, out preparedBombCell, out preparedApproachPath, out preparedEscapePath))
+                return false;
+
+            hasPreparedPlan = true;
+            return true;
         }
 
         public void Enter(BotSenseContext sense)
@@ -44,7 +61,17 @@ namespace _Project.Gameplay.AI.Scripts.States
             finished = false;
             blackboard.LastStateName = Name;
 
-            if (!TryBuildPlan(sense, out targetBlockCell, out bombCell, out List<Vector3Int> approachPath, out plannedEscapePath))
+            List<Vector3Int> approachPath;
+
+            if (hasPreparedPlan)
+            {
+                targetBlockCell = preparedBlockCell;
+                bombCell = preparedBombCell;
+                approachPath = preparedApproachPath;
+                plannedEscapePath = preparedEscapePath;
+                ClearPreparedPlan();
+            }
+            else if (!TryBuildPlan(sense, out targetBlockCell, out bombCell, out approachPath, out plannedEscapePath))
             {
                 executor.Stop();
                 finished = true;
@@ -70,16 +97,9 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
-            BotActionExecutor.PathFollowResult followResult = executor.FollowPath(blackboard);
-            if (followResult == BotActionExecutor.PathFollowResult.InProgress)
+            bool arrived = executor.FollowPath(blackboard);
+            if (!arrived)
                 return;
-
-            if (followResult != BotActionExecutor.PathFollowResult.Arrived)
-            {
-                executor.Stop();
-                finished = true;
-                return;
-            }
 
             if (!executor.Player.CanPlaceBomb)
             {
@@ -93,23 +113,16 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
-            Vector3Int selfCell = executor.Player.GetCurrentCell();
-            if (selfCell != bombCell
-                || !BotGridUtility.CanBlastHitTarget(
-                    selfCell,
-                    targetBlockCell,
-                    executor.Player.BombRangeStat,
-                    navigator.MapContext))
+            if (!executor.Player.IsNavigationSettled)
             {
                 executor.Stop();
-                finished = true;
                 return;
             }
 
             if (executor.TryPlaceBomb())
             {
                 blackboard.LastBombTime = Time.time;
-                blackboard.PlannedBombCell = selfCell;
+                blackboard.PlannedBombCell = bombCell;
                 blackboard.EscapePath = plannedEscapePath;
                 blackboard.EscapeCell = plannedEscapePath != null && plannedEscapePath.Count > 0
                     ? plannedEscapePath[plannedEscapePath.Count - 1]
@@ -124,6 +137,7 @@ namespace _Project.Gameplay.AI.Scripts.States
         {
             executor.Stop();
             blackboard.ClearPath();
+            ClearPreparedPlan();
         }
 
         private bool TryBuildPlan(
@@ -152,7 +166,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                         sense.CurrentCell,
                         candidateBombCell,
                         config.avoidDangerCells ? sense.DangerCells : null,
-                        sense.BlockedCells);
+                        sense.BlockedCells,
+                        executor.Player);
 
                     if (approachPath == null || approachPath.Count == 0)
                         continue;
@@ -178,15 +193,17 @@ namespace _Project.Gameplay.AI.Scripts.States
         private bool TryBuildEscapePath(Vector3Int candidateBombCell, BotSenseContext sense, out List<Vector3Int> escapePath)
         {
             escapePath = null;
+            return BotBombEscapeUtility.TryFindEscapePath(navigator, executor.Player, sense, candidateBombCell, out escapePath);
+        }
 
-            return BotBombEscapeUtility.TryFindEscapePath(
-                navigator,
-                executor.Player,
-                sense,
-                candidateBombCell,
-                out escapePath)
-                && escapePath != null
-                && escapePath.Count > 1;
+        private void ClearPreparedPlan()
+        {
+            hasPreparedPlan = false;
+            preparedBlockCell = default;
+            preparedBombCell = default;
+            preparedApproachPath = null;
+            preparedEscapePath = null;
         }
     }
 }
+

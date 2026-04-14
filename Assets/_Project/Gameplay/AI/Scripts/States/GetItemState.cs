@@ -45,7 +45,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                 sense.CurrentCell,
                 candidates,
                 config.avoidDangerCells ? sense.DangerCells : null,
-                sense.BlockedCells);
+                sense.BlockedCells,
+                executor.Player);
 
             if (path == null || path.Count == 0)
             {
@@ -74,8 +75,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
-            BotActionExecutor.PathFollowResult followResult = executor.FollowPath(blackboard);
-            if (followResult != BotActionExecutor.PathFollowResult.InProgress)
+            bool done = executor.FollowPath(blackboard);
+            if (done)
             {
                 executor.Stop();
                 finished = true;

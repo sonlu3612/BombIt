@@ -21,7 +21,7 @@ namespace _Project.Gameplay.Item.Scripts
 
         private void Start()
         {
-            MapContext mapContext = Object.FindFirstObjectByType<MapContext>();
+            MapContext mapContext = Object.FindAnyObjectByType<MapContext>();
             occupancyService = mapContext != null ? mapContext.GridOccupancyService : null;
 
             if (occupancyService != null)

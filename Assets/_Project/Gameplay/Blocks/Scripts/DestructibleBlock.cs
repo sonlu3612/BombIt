@@ -47,7 +47,7 @@ namespace _Project.Gameplay.Block.Scripts
 
         private Vector3 ResolveDropPosition()
         {
-            MapContext mapContext = Object.FindFirstObjectByType<MapContext>();
+            MapContext mapContext = Object.FindAnyObjectByType<MapContext>();
             GridOccupancyService occupancyService = mapContext != null ? mapContext.GridOccupancyService : null;
 
             if (occupancyService != null)

@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7712345678901234567
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7712345678901234568}
+  m_Layer: 8
+  m_Name: feet
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7712345678901234568
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7712345678901234567}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -3.35, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2068811288901463021}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8757115619382414367
 GameObject:
   m_ObjectHideFlags: 0
@@ -35,7 +66,8 @@ Transform:
   m_LocalPosition: {x: 1.5, y: 0.5, z: 0}
   m_LocalScale: {x: 0.18, y: 0.18, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7712345678901234568}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4267749918858187836
@@ -157,7 +189,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Player.Scripts.PlayerController
   inputDir: {x: 0, y: 0}
   bombPrefab: {fileID: 4698958010277588, guid: 0293de9d25e4f64408aedd9a1c64e170, type: 3}
-  feetPoint: {fileID: 0}
+  feetPoint: {fileID: 7712345678901234568}
+  navigationBottomInset: 0.08
   debugPlayerCell: 1
   debugCellColor: {r: 0, g: 1, b: 0, a: 1}
   debugCellSize: {x: 0.9, y: 0.9, z: 0.1}
@@ -175,6 +208,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ade0db74a7bc1a240a62018319edaed9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.Player.Scripts.PlayerMovement
+  laneSnapSpeed: 8
+  laneThreshold: 0.03
+  cellReachThreshold: 0.04
+  blockPlayerCells: 1
+  forceTriggerCollider: 1
+  allowHeldMoveQueueForBots: 0
 --- !u!95 &5356888940488938506
 Animator:
   serializedVersion: 7
@@ -238,7 +277,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Gameplay.AI.Scripts.BotBrain
   config:
     thinkInterval: 0.2
+    repathInterval: 0.15
     findRange: 6
-    wanderReachThreshold: 0.05
-    wanderMaxSearchCells: 20
     avoidDangerCells: 1
+    reachThreshold: 0.05
+    wanderMaxSearchCells: 20
+    wanderMinPathLength: 4
+    idleChance: 0.08
+    idleDurationRange: {x: 0.15, y: 0.45}
+    itemChance: 0.85
+    attackChance: 0.8
+    breakBlockChance: 0.9
+    plantBombChance: 0.95
+    bombCooldown: 0.35
+    attackSearchRange: 8
+    escapeSearchRange: 8
+  debugDrawAI: 1
+  debugDrawSense: 1
+  debugDrawPath: 1
+  debugDrawSearch: 1
+  debugDrawBlocked: 1
+  debugDrawDanger: 1
+  debugDrawSafeCells: 0
+  debugDrawVisitedCells: 0
+  debugCubeSize: 0.72

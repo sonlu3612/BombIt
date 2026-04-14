@@ -8,6 +8,7 @@ namespace _Project.Gameplay.AI.Scripts
     public class BotSenseContext
     {
         public Vector3Int CurrentCell;
+        public Vector3Int LogicCell;
 
         public HashSet<Vector3Int> DangerCells = new();
         public HashSet<Vector3Int> BlockedCells = new();

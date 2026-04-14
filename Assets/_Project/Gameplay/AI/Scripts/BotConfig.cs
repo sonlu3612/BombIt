@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace _Project.Gameplay.AI.Scripts
 {
@@ -35,48 +35,7 @@ namespace _Project.Gameplay.AI.Scripts
 
         public BotConfig Clone()
         {
-            return new BotConfig
-            {
-                thinkInterval = thinkInterval,
-                repathInterval = repathInterval,
-                findRange = findRange,
-                avoidDangerCells = avoidDangerCells,
-                reachThreshold = reachThreshold,
-                wanderMaxSearchCells = wanderMaxSearchCells,
-                wanderMinPathLength = wanderMinPathLength,
-                idleChance = idleChance,
-                idleDurationRange = idleDurationRange,
-                itemChance = itemChance,
-                attackChance = attackChance,
-                breakBlockChance = breakBlockChance,
-                plantBombChance = plantBombChance,
-                bombCooldown = bombCooldown,
-                attackSearchRange = attackSearchRange,
-                escapeSearchRange = escapeSearchRange
-            };
-        }
-
-        public void CopyFrom(BotConfig other)
-        {
-            if (other == null)
-                return;
-
-            thinkInterval = other.thinkInterval;
-            repathInterval = other.repathInterval;
-            findRange = other.findRange;
-            avoidDangerCells = other.avoidDangerCells;
-            reachThreshold = other.reachThreshold;
-            wanderMaxSearchCells = other.wanderMaxSearchCells;
-            wanderMinPathLength = other.wanderMinPathLength;
-            idleChance = other.idleChance;
-            idleDurationRange = other.idleDurationRange;
-            itemChance = other.itemChance;
-            attackChance = other.attackChance;
-            breakBlockChance = other.breakBlockChance;
-            plantBombChance = other.plantBombChance;
-            bombCooldown = other.bombCooldown;
-            attackSearchRange = other.attackSearchRange;
-            escapeSearchRange = other.escapeSearchRange;
+            return (BotConfig)MemberwiseClone();
         }
     }
 }

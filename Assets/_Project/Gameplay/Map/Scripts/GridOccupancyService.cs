@@ -23,7 +23,7 @@ namespace _Project.Gameplay.Map.Scripts
                 mapContext = GetComponent<MapContext>();
 
             if (mapContext == null)
-                mapContext = Object.FindFirstObjectByType<MapContext>();
+                mapContext = Object.FindAnyObjectByType<MapContext>();
         }
 
         public Vector3Int WorldToCell(Vector3 worldPosition)

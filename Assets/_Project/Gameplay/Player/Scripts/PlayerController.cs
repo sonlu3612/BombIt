@@ -1,10 +1,6 @@
-using System.Collections;
 using _Project.Gameplay.AI.Scripts;
-using _Project.Gameplay.Audio.Scripts;
-using _Project.Gameplay.Match.Scripts;
 using _Project.Gameplay.Bomb.Scripts;
 using _Project.Gameplay.Map.Scripts;
-using _Project.Gameplay.UI.Scripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -18,15 +14,12 @@ namespace _Project.Gameplay.Player.Scripts
         private Domain.Player player;
         private Animator anim;
         private PlayerMovement movement;
-        private SpriteRenderer spriteRenderer;
+        private BotBrain botBrain;
 
         private MapContext mapContext;
         private Collider2D cachedCollider;
-        private Coroutine damageFlashRoutine;
-        private Coroutine deathRoutine;
-        private Coroutine spawnIntroRoutine;
-        private bool isDying;
-        private SpriteRenderer[] visualSpriteRenderers;
+        private Vector3 cachedNavigationLocalOffset;
+        private bool hasCachedNavigationLocalOffset;
 
         public Vector2 inputDir;
         private Vector2 lastDir = Vector2.down;
@@ -34,10 +27,6 @@ namespace _Project.Gameplay.Player.Scripts
         [SerializeField] private GameObject bombPrefab;
         [SerializeField] private Transform feetPoint;
         [SerializeField] private float navigationBottomInset = 0.08f;
-        [SerializeField] private float damageFlashDuration = 0.3f;
-        [SerializeField] private int damageFlashBlinkCount = 3;
-        [SerializeField] private float deathBlinkDuration = 0.75f;
-        [SerializeField] private int deathBlinkCount = 5;
 
         public int BombCapacity => player != null ? player.BombCount : 1;
         public int BombRangeStat => player != null ? player.BombRange : 1;
@@ -46,7 +35,8 @@ namespace _Project.Gameplay.Player.Scripts
         public int ActiveBombCount => currentBomb;
         public bool CanPlaceBomb => player != null && currentBomb < player.BombCount;
         public MapContext CurrentMapContext => mapContext;
-        public bool IsDying => isDying;
+        public bool IsBotControlled => botBrain != null && botBrain.enabled;
+        public bool IsNavigationSettled => movement == null || !movement.IsInitialized || movement.IsSettledOnCurrentCell();
 
         [Header("Debug Player Hitbox")]
         [SerializeField] private bool debugPlayerCell = true;
@@ -57,26 +47,32 @@ namespace _Project.Gameplay.Player.Scripts
         [SerializeField] private Color debugColliderColor = Color.cyan;
 
         private int currentBomb;
+        private SpriteRenderer spriteRenderer;
+        private bool isDying = false;
+
+        public bool IsDying => isDying;
 
         public void Init(MapContext context)
         {
             mapContext = context;
         }
 
+        [System.Obsolete]
         private void Start()
         {
-            player = new Domain.Player();
+            player = new();
             anim = GetComponent<Animator>();
             movement = GetComponent<PlayerMovement>();
+            botBrain = GetComponent<BotBrain>();
             spriteRenderer = GetComponent<SpriteRenderer>();
-            visualSpriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
             cachedCollider = GetComponent<Collider2D>();
+            CacheNavigationLocalOffset();
 
             inputDir = Vector2.zero;
 
             if (mapContext == null)
             {
-                mapContext = Object.FindFirstObjectByType<MapContext>();
+                mapContext = FindAnyObjectByType<MapContext>();
 
                 if (mapContext == null)
                     Debug.LogError($"[{nameof(PlayerController)}] No MapContext found for {gameObject.name}.", this);
@@ -88,20 +84,11 @@ namespace _Project.Gameplay.Player.Scripts
 
         private void Update()
         {
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive)
-            {
-                inputDir = Vector2.zero;
-                return;
-            }
-
             HandleAnimation();
         }
 
         private void FixedUpdate()
         {
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive)
-                return;
-
             HandleMovement();
         }
 
@@ -213,22 +200,31 @@ namespace _Project.Gameplay.Player.Scripts
                 0);
         }
 
+        public Vector3Int GetLogicCell()
+        {
+            if (movement != null && movement.IsInitialized)
+                return movement.SettledCell;
+
+            return GetCurrentCell();
+        }
+
 
         public Vector3 GetNavigationWorldPosition()
         {
-            if (feetPoint != null)
-                return feetPoint.position;
+            if (!hasCachedNavigationLocalOffset)
+                CacheNavigationLocalOffset();
 
-            if (cachedCollider == null)
-                cachedCollider = GetComponent<Collider2D>();
+            Vector3 worldPosition = transform.TransformPoint(cachedNavigationLocalOffset);
+            worldPosition.z = transform.position.z;
+            return worldPosition;
+        }
 
-            if (cachedCollider != null)
-            {
-                Bounds bounds = cachedCollider.bounds;
-                return new Vector3(bounds.center.x, bounds.min.y + navigationBottomInset, transform.position.z);
-            }
+        public Vector3 GetNavigationAnchorWorld(Vector3Int cell)
+        {
+            if (movement != null && movement.IsInitialized)
+                return movement.GetNavigationAnchorWorld(cell);
 
-            return transform.position;
+            return GetCellCenterWorld(cell);
         }
 
         private Vector3 GetCellCenterWorld(Vector3Int cell)
@@ -244,9 +240,6 @@ namespace _Project.Gameplay.Player.Scripts
 
         private void HandleMovement()
         {
-            if (isDying)
-                return;
-
             if (inputDir != Vector2.zero)
                 lastDir = inputDir;
 
@@ -255,36 +248,15 @@ namespace _Project.Gameplay.Player.Scripts
 
         private void HandleAnimation()
         {
-            if (isDying)
-                return;
-
-            Vector2 animationDirection = movement != null && movement.IsMoving
-                ? movement.CurrentMoveDirection
-                : Vector2.zero;
-
-            if (animationDirection != Vector2.zero)
-                lastDir = animationDirection;
-            else if (inputDir != Vector2.zero)
-                lastDir = inputDir;
-
-            anim.SetFloat("MoveX", animationDirection.x);
-            anim.SetFloat("MoveY", animationDirection.y);
+            anim.SetFloat("MoveX", inputDir.x);
+            anim.SetFloat("MoveY", inputDir.y);
             anim.SetFloat("LastMoveX", lastDir.x);
             anim.SetFloat("LastMoveY", lastDir.y);
-            anim.SetBool("IsMoving", movement != null && movement.IsMoving);
+            anim.SetBool("IsMoving", inputDir != Vector2.zero);
         }
 
         public void OnMove(InputValue value)
         {
-            if (isDying)
-                return;
-
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive)
-            {
-                inputDir = Vector2.zero;
-                return;
-            }
-
             inputDir = value.Get<Vector2>();
 
             if (inputDir.x != 0)
@@ -293,48 +265,29 @@ namespace _Project.Gameplay.Player.Scripts
 
         public void OnBomb()
         {
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive || isDying)
-                return;
-
             PlaceBomb();
         }
 
         public void TakeDamage()
         {
-            if (isDying)
-                return;
-
             player.TakeDamage();
-            AudioManager.Instance?.PlayDamage();
 
             if (player.Health <= 0)
-            {
                 Die();
-                return;
-            }
-
-            PlayDamageFlash();
         }
 
-        public bool PlaceBomb()
+        public void PlaceBomb()
         {
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive || isDying)
-                return false;
-
             if (currentBomb >= player.BombCount)
-                return false;
+                return;
 
             if (mapContext == null)
             {
                 Debug.LogError($"[{nameof(PlayerController)}] Cannot place bomb because MapContext is null.", this);
-                return false;
+                return;
             }
 
             Vector3Int cell = GetCurrentCell();
-            GridOccupancyService occupancyService = mapContext.GridOccupancyService;
-            if (occupancyService != null && occupancyService.HasBomb(cell))
-                return false;
-
             Vector2Int gridPos = new Vector2Int(cell.x, cell.y);
 
             Vector3 spawnPos = GetCellCenterWorld(cell);
@@ -342,17 +295,14 @@ namespace _Project.Gameplay.Player.Scripts
 
             GameObject bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
 
-            _Project.Domain.Bomb bombData = new _Project.Domain.Bomb(
-                gridPos,
-                _Project.Domain.Bomb.DefaultExplodeTime,
-                player.BombRange);
+            Domain.Bomb bombData = new Domain.Bomb(gridPos, 2f, player.BombRange);
 
             BombController bombController = bombObj.GetComponent<BombController>();
             if (bombController == null)
             {
                 Debug.LogError($"[{nameof(PlayerController)}] Bomb prefab has no BombController.", bombObj);
                 Destroy(bombObj);
-                return false;
+                return;
             }
 
             bombController.Init(
@@ -364,124 +314,37 @@ namespace _Project.Gameplay.Player.Scripts
 
             currentBomb++;
             BotRuntimeDebugLog.LogBombPlaced(this, cell, player.BombRange, currentBomb, player.BombCount);
-            return true;
         }
 
         private void Die()
         {
-            if (isDying)
-                return;
-
             isDying = true;
-            inputDir = Vector2.zero;
-
-            if (damageFlashRoutine != null)
-            {
-                StopCoroutine(damageFlashRoutine);
-                damageFlashRoutine = null;
-            }
-
-            if (anim == null)
-                anim = GetComponent<Animator>();
-
-            if (movement == null)
-                movement = GetComponent<PlayerMovement>();
-
-            if (cachedCollider == null)
-                cachedCollider = GetComponent<Collider2D>();
-
-            if (movement != null)
-            {
-                movement.FreezeForDeath();
-                movement.enabled = false;
-            }
-
-            if (cachedCollider != null)
-                cachedCollider.enabled = false;
-
-            PlayerInput playerInput = GetComponent<PlayerInput>();
-            if (playerInput != null)
-                playerInput.enabled = false;
-
-            BotBrain botBrain = GetComponent<BotBrain>();
-            if (botBrain != null)
-                botBrain.enabled = false;
-
-            if (anim != null)
-                anim.enabled = false;
-
-            if (spriteRenderer != null)
-                spriteRenderer.enabled = true;
-
-            if (deathRoutine != null)
-                StopCoroutine(deathRoutine);
-
-            deathRoutine = StartCoroutine(DeathSequenceCoroutine());
+            Debug.Log("Player died");
+            Destroy(gameObject);
         }
 
-        private void PlayDamageFlash()
+        public void PlaySpawnIntro(float duration, int blinkCount)
         {
             if (spriteRenderer == null)
-                spriteRenderer = GetComponent<SpriteRenderer>();
-
-            if (spriteRenderer == null || damageFlashBlinkCount <= 0 || damageFlashDuration <= 0f)
                 return;
 
-            if (damageFlashRoutine != null)
-                StopCoroutine(damageFlashRoutine);
-
-            damageFlashRoutine = StartCoroutine(DamageFlashCoroutine());
+            StartCoroutine(PlaySpawnIntroCoroutine(duration, blinkCount));
         }
 
-        private IEnumerator DamageFlashCoroutine()
+        private System.Collections.IEnumerator PlaySpawnIntroCoroutine(float duration, int blinkCount)
         {
-            float interval = damageFlashDuration / Mathf.Max(1, damageFlashBlinkCount * 2);
-
-            for (int i = 0; i < damageFlashBlinkCount; i++)
+            float blinkInterval = duration / (blinkCount * 2f);
+            for (int i = 0; i < blinkCount; i++)
             {
                 spriteRenderer.enabled = false;
-                yield return new WaitForSeconds(interval);
-
+                yield return new WaitForSeconds(blinkInterval);
                 spriteRenderer.enabled = true;
-                yield return new WaitForSeconds(interval);
+                yield return new WaitForSeconds(blinkInterval);
             }
-
-            spriteRenderer.enabled = true;
-            damageFlashRoutine = null;
-        }
-
-        private IEnumerator DeathSequenceCoroutine()
-        {
-            if (spriteRenderer == null)
-            {
-                Destroy(gameObject);
-                yield break;
-            }
-
-            float interval = deathBlinkDuration / Mathf.Max(1, deathBlinkCount * 2);
-
-            for (int i = 0; i < deathBlinkCount; i++)
-            {
-                spriteRenderer.enabled = false;
-                yield return new WaitForSeconds(interval);
-
-                spriteRenderer.enabled = true;
-                yield return new WaitForSeconds(interval);
-            }
-
-            spriteRenderer.enabled = true;
-            deathRoutine = null;
-            Destroy(gameObject);
         }
 
         public void SetMoveDirection(Vector2 dir)
         {
-            if (MapPauseButtonController.IsGamePaused || MatchResultOverlayController.IsShowingResult || RoundIntroState.IsActive)
-            {
-                inputDir = Vector2.zero;
-                return;
-            }
-
             inputDir = dir;
 
             if (inputDir.x != 0)
@@ -493,62 +356,36 @@ namespace _Project.Gameplay.Player.Scripts
             inputDir = Vector2.zero;
         }
 
-        public void PlaySpawnIntro(float duration, int blinkCount)
-        {
-            if (isDying)
-                return;
-
-            if (spawnIntroRoutine != null)
-                StopCoroutine(spawnIntroRoutine);
-
-            spawnIntroRoutine = StartCoroutine(SpawnIntroCoroutine(duration, blinkCount));
-        }
-
         public void AddSpeed(float amount) => player.AddSpeed(amount);
         public void AddBomb(int amount) => player.AddBombCount(amount);
         public void AddRange(int amount) => player.AddBombRange(amount);
         public void AddHealth(int amount) => player.AddHealth(amount);
 
-        private void OnDisable()
+        private void CacheNavigationLocalOffset()
         {
-            inputDir = Vector2.zero;
-            SetAllVisualsEnabled(true);
-        }
-
-        private IEnumerator SpawnIntroCoroutine(float duration, int blinkCount)
-        {
-            if (duration <= 0f || blinkCount <= 0)
+            if (feetPoint != null)
             {
-                SetAllVisualsEnabled(true);
-                spawnIntroRoutine = null;
-                yield break;
+                cachedNavigationLocalOffset = transform.InverseTransformPoint(feetPoint.position);
+                cachedNavigationLocalOffset.z = 0f;
+                hasCachedNavigationLocalOffset = true;
+                return;
             }
 
-            float interval = duration / Mathf.Max(1, blinkCount * 2);
+            if (cachedCollider == null)
+                cachedCollider = GetComponent<Collider2D>();
 
-            for (int i = 0; i < blinkCount; i++)
+            if (cachedCollider != null)
             {
-                SetAllVisualsEnabled(false);
-                yield return new WaitForSecondsRealtime(interval);
-
-                SetAllVisualsEnabled(true);
-                yield return new WaitForSecondsRealtime(interval);
+                Bounds bounds = cachedCollider.bounds;
+                Vector3 navigationWorld = new(bounds.center.x, bounds.min.y + navigationBottomInset, transform.position.z);
+                cachedNavigationLocalOffset = transform.InverseTransformPoint(navigationWorld);
+                cachedNavigationLocalOffset.z = 0f;
+                hasCachedNavigationLocalOffset = true;
+                return;
             }
 
-            SetAllVisualsEnabled(true);
-            spawnIntroRoutine = null;
-        }
-
-        private void SetAllVisualsEnabled(bool enabled)
-        {
-            if (visualSpriteRenderers == null || visualSpriteRenderers.Length == 0)
-                visualSpriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-
-            foreach (SpriteRenderer renderer in visualSpriteRenderers)
-            {
-                if (renderer != null)
-                    renderer.enabled = enabled;
-            }
+            cachedNavigationLocalOffset = Vector3.zero;
+            hasCachedNavigationLocalOffset = true;
         }
     }
 }

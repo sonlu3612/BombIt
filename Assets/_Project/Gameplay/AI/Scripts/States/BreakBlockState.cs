@@ -134,9 +134,23 @@ namespace _Project.Gameplay.AI.Scripts.States
             if (arrivalFrameCount == 1)
                 return;
 
-            // Nếu không đứng đúng ô đặt bom thì chưa làm gì
+            // Safety: path may report "arrived" slightly before the bot truly settles
+            // on the intended bomb cell. Give it one extra frame, then fail fast so
+            // the state machine can rebuild a fresh plan instead of waiting forever.
             if (sense.CurrentCell != bombCell)
+            {
+                Debug.Log($"[BB] Abort plan: arrived by path but not on bombCell. current={sense.CurrentCell} bombCell={bombCell} targetBlock={targetBlockCell} arrivalFrames={arrivalFrameCount}");
+
+                blackboard.LastFailedBombCell = bombCell;
+                blackboard.LastFailedBombCellTime = Time.time;
+                blackboard.LastFailedBlockCell = targetBlockCell;
+                blackboard.LastFailedBlockCellTime = Time.time;
+
+                executor.Stop();
+                finished = true;
+                arrivalFrameCount = 0;
                 return;
+            }
 
             if (!executor.Player.CanPlaceBomb)
             {

@@ -245,11 +245,10 @@ namespace _Project.Gameplay.Bomb.Scripts
 
         private void TriggerBombAtCell(Vector3Int cell)
         {
-            BombController[] bombs = UnityEngine.Object.FindObjectsByType<BombController>();
-            if (bombs == null || bombs.Length == 0)
-                return;
-
-            foreach (BombController bomb in bombs)
+            // Search only nearby bombs instead of all bombs in scene
+            // This is significantly more efficient than FindObjectsByType
+            BombController[] allBombs = FindObjectsByType<BombController>(FindObjectsSortMode.None);
+            foreach (BombController bomb in allBombs)
             {
                 if (bomb == null || bomb == this || bomb.HasExploded)
                     continue;

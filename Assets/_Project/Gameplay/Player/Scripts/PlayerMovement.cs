@@ -1,4 +1,4 @@
-using _Project.Gameplay.AI.Scripts;
+﻿using _Project.Gameplay.AI.Scripts;
 using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
@@ -287,15 +287,26 @@ public class PlayerMovement : MonoBehaviour
 
         if (HasReachedTarget(navTarget, axis))
         {
-            Vector3Int previousCell = currentCell;
+            Debug.Log($"[PM] COMMIT from settled={settledCell} to dest={destinationCell}");
+            Vector3Int previousCell = settledCell;
+
             currentCell = destinationCell;
             settledCell = destinationCell;
             targetCell = null;
             activeMoveAxis = MovementAxis.None;
 
-            occupancy.MovePlayer(controller, previousCell, currentCell);
-
+            occupancy.MovePlayer(controller, previousCell, destinationCell);
             bool continuesMoving = ShouldAutoQueueHeldMove() && TryQueueHeldMoveFromCurrentCell();
+
+            if (!continuesMoving && controller != null && controller.IsBotControlled)
+            {
+                requestedDirection = Vector2.zero;
+                moveSpeed = 0f;
+                currentMoveDirection = Vector2.zero;
+                isMoving = false;
+                controller.ClearMoveInput();
+            }
+
             SnapRootToCell(currentCell, !continuesMoving);
 
             BotMovementTraceLog.LogPlayerMovement(
@@ -313,18 +324,18 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-        public void StopImmediately()
+    public void StopImmediately()
     {
+        Debug.Log($"[PM] StopImmediately settled={settledCell} current={currentCell} target={targetCell}");
+
         requestedDirection = Vector2.zero;
-        if (targetCell.HasValue && occupancy.WorldToCell(controller.GetNavigationWorldPosition()) == currentCell)
-        {
-            settledCell = currentCell;
-            targetCell = null;
-            isMoving = false;
-            activeMoveAxis = MovementAxis.None;
-            currentMoveDirection = Vector2.zero;
-            SnapRootToCell(currentCell, true);
-        }
+        targetCell = null;
+        activeMoveAxis = MovementAxis.None;
+        currentMoveDirection = Vector2.zero;
+        isMoving = false;
+
+        currentCell = settledCell;
+        SnapRootToCell(settledCell, true);
     }
 
     private void SnapBackToCellCenter(float deltaTime)
@@ -408,11 +419,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void SnapRootToCell(Vector3Int cell, bool resetMovementState = true)
     {
+        Debug.Log($"[PM] SnapRootToCell -> {cell} reset={resetMovementState}");
+
         Vector3 navTarget = GetCellNavigationAnchor(cell);
         Vector3 rootTarget = navTarget + navigationOffsetFromRoot;
         rootTarget.z = transform.position.z;
 
         rb.position = rootTarget;
+
+        currentCell = cell;
+        settledCell = cell;
 
         if (resetMovementState)
         {
@@ -423,13 +439,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateCurrentCellFromNavigation(Vector3 navigationPosition, Vector3Int destinationCell)
     {
-        Vector3Int sampledCell = occupancy.WorldToCell(navigationPosition);
-        if (sampledCell == currentCell || sampledCell != destinationCell)
-            return;
-
-        Vector3Int previousCell = currentCell;
-        currentCell = sampledCell;
-        occupancy.MovePlayer(controller, previousCell, currentCell);
 
         BotMovementTraceLog.LogPlayerMovement(
             controller,

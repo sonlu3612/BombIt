@@ -70,12 +70,16 @@ namespace _Project.Gameplay.AI.Scripts
             Vector2 moveDir = primaryMoveDir;
             bool usedAlignment = false;
 
-            if (TryGetAlignmentDirection(currentCell, targetCell, alignDelta, out Vector2 alignmentDir)
-                && CanTraverseToward(currentCell, alignmentDir))
-            {
-                moveDir = alignmentDir;
-                usedAlignment = true;
-            }
+            // Tạm tắt alignment để tránh rung trái/phải khi đang đi theo path grid
+            // if (TryGetAlignmentDirection(currentCell, targetCell, alignDelta, out Vector2 alignmentDir)
+            //     && CanTraverseToward(currentCell, alignmentDir))
+            // {
+            //     moveDir = alignmentDir;
+            //     usedAlignment = true;
+            // }
+
+            if (moveDir == Vector2.zero)
+                moveDir = GetDeltaMoveDirection(delta);
 
             if (moveDir == Vector2.zero)
                 moveDir = primaryMoveDir != Vector2.zero ? primaryMoveDir : GetDeltaMoveDirection(delta);

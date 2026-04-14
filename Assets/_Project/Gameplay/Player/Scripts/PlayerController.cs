@@ -184,7 +184,7 @@ namespace _Project.Gameplay.Player.Scripts
         public Vector3Int GetCurrentCell()
         {
             if (movement != null && movement.IsInitialized)
-                return movement.CurrentCell;
+                return movement.SettledCell;
 
             Vector3 samplePos = GetNavigationWorldPosition();
 
@@ -343,15 +343,19 @@ namespace _Project.Gameplay.Player.Scripts
             }
         }
 
+        public void ClearMoveInput()
+        {
+            inputDir = Vector2.zero;
+        }
+
         public void SetMoveDirection(Vector2 dir)
         {
-            inputDir = dir;
-
-            if (inputDir.x != 0)
-                inputDir.y = 0;
-            
-            if (movement != null && movement.IsInitialized)
-                movement.Move(inputDir, player.Speed);
+            if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y))
+                inputDir = new Vector2(Mathf.Sign(dir.x), 0);
+            else if (Mathf.Abs(dir.y) > 0)
+                inputDir = new Vector2(0, Mathf.Sign(dir.y));
+            else
+                inputDir = Vector2.zero;
         }
 
         public void StopMoving()

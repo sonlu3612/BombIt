@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -51,12 +51,14 @@ namespace _Project.Gameplay.AI.Scripts
 
             foreach (Vector3Int candidate in escapeCandidates)
             {
-                // Combine future blast cells with current danger cells
-                // This ensures pathfinding avoids the bomb's blast zone even though
-                // the bomb hasn't been placed in the world yet during plan calculation
-                HashSet<Vector3Int> combinedDangerCells = new(sense.DangerCells);
+                HashSet<Vector3Int> combinedDangerCells = new HashSet<Vector3Int>(sense.DangerCells);
+
                 foreach (Vector3Int blastCell in futureBlast)
                 {
+                    // Quan trọng: cho phép start ở bombCell rồi mới bước ra ngoài
+                    if (blastCell == bombCell)
+                        continue;
+
                     combinedDangerCells.Add(blastCell);
                 }
 

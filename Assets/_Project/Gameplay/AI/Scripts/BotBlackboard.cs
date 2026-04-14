@@ -20,6 +20,10 @@ namespace _Project.Gameplay.AI.Scripts
             public string LastStateName;
             public Vector3 LastProgressPosition;
             public float LastProgressTime;
+            public Vector3Int? LastFailedBombCell;
+            public float LastFailedBombCellTime;
+            public Vector3Int? LastFailedBlockCell;
+            public float LastFailedBlockCellTime;
         }
 
         public Vector3Int? CurrentTargetCell { get; set; }
@@ -37,6 +41,10 @@ namespace _Project.Gameplay.AI.Scripts
         public string LastStateName { get; set; }
         public Vector3 LastProgressPosition { get; set; }
         public float LastProgressTime { get; set; }
+        public Vector3Int? LastFailedBombCell { get; set; }
+        public float LastFailedBombCellTime { get; set; }
+        public Vector3Int? LastFailedBlockCell { get; set; }
+        public float LastFailedBlockCellTime { get; set; }
 
         public void SetPath(List<Vector3Int> path)
         {
@@ -78,7 +86,11 @@ namespace _Project.Gameplay.AI.Scripts
                 LastBombTime = LastBombTime,
                 LastStateName = LastStateName,
                 LastProgressPosition = LastProgressPosition,
-                LastProgressTime = LastProgressTime
+                LastProgressTime = LastProgressTime,
+                LastFailedBombCell = LastFailedBombCell,
+                LastFailedBombCellTime = LastFailedBombCellTime,
+                LastFailedBlockCell = LastFailedBlockCell,
+                LastFailedBlockCellTime = LastFailedBlockCellTime
             };
         }
 
@@ -99,6 +111,10 @@ namespace _Project.Gameplay.AI.Scripts
             LastStateName = snapshot.LastStateName;
             LastProgressPosition = snapshot.LastProgressPosition;
             LastProgressTime = snapshot.LastProgressTime;
+            LastFailedBombCell = snapshot.LastFailedBombCell;
+            LastFailedBombCellTime = snapshot.LastFailedBombCellTime;
+            LastFailedBlockCell = snapshot.LastFailedBlockCell;
+            LastFailedBlockCellTime = snapshot.LastFailedBlockCellTime;
         }
     }
 }

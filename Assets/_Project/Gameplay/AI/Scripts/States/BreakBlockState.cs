@@ -122,6 +122,14 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
+            // Only place bomb if we have a valid escape path
+            if (plannedEscapePath == null || plannedEscapePath.Count == 0)
+            {
+                executor.Stop();
+                finished = true;
+                return;
+            }
+
             if (executor.TryPlaceBomb())
             {
                 blackboard.LastBombTime = Time.time;

@@ -1,4 +1,4 @@
-using _Project.Gameplay.AI.Scripts.States;
+﻿using _Project.Gameplay.AI.Scripts.States;
 using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Match.Scripts;
 using _Project.Gameplay.Player.Scripts;
@@ -73,8 +73,10 @@ namespace _Project.Gameplay.AI.Scripts
             {
                 new EscapeAfterBombState(blackboard, navigator, executor),
                 new EvadeBombState(blackboard, navigator, executor),
-                new GetItemState(blackboard, navigator, executor, config),
-                new PlantBombState(blackboard, navigator, executor, config),
+
+                new PlantBombState(blackboard, navigator, executor, config), // ↑ đẩy lên
+                new GetItemState(blackboard, navigator, executor, config),   // ↓ xuống
+
                 new AttackEnemyState(blackboard, navigator, executor, config),
                 new BreakBlockState(blackboard, navigator, executor, config)
             };
@@ -93,6 +95,7 @@ namespace _Project.Gameplay.AI.Scripts
                 stateMachine.StateChanged -= OnStateChanged;
         }
 
+        [System.Obsolete]
         private void Update()
         {
             if (blackboard == null)

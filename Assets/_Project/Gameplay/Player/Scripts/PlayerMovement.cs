@@ -313,6 +313,19 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void StopImmediately()
+    {
+        requestedDirection = Vector2.zero;
+        if (targetCell.HasValue && occupancy.WorldToCell(controller.GetNavigationWorldPosition()) == currentCell)
+        {
+            targetCell = null;
+            isMoving = false;
+            activeMoveAxis = MovementAxis.None;
+            currentMoveDirection = Vector2.zero;
+            SnapRootToCell(currentCell, true);
+        }
+    }
+
     private void SnapBackToCellCenter(float deltaTime)
     {
         Vector3 navTarget = GetCellNavigationAnchor(currentCell);
@@ -484,3 +497,4 @@ public class PlayerMovement : MonoBehaviour
             occupancy.UnregisterPlayer(controller);
     }
 }
+

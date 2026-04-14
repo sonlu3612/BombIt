@@ -117,7 +117,7 @@ namespace _Project.Gameplay.AI.Scripts
     public static class BotRuntimeDebugLog
     {
         private static readonly object Sync = new();
-        private static readonly HashSet<int> DumpedMapContexts = new();
+        private static readonly HashSet<EntityId> DumpedMapContexts = new();
 
         private static bool initialized;
         private static string sessionFilePath;

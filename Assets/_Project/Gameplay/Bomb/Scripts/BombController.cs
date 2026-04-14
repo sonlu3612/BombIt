@@ -21,15 +21,25 @@ namespace _Project.Gameplay.Bomb.Scripts
         private Coroutine explodeRoutine;
         private bool hasExploded;
         private bool registeredInOccupancy;
-            
-            [SerializeField] private float postExplosionDamageDelay = 0.1f;
-            private float explosionHazardEndTime;
+        
+        [SerializeField] private float postExplosionDamageDelay = 0.1f;
+        private float explosionHazardEndTime;
 
-            public Vector3Int CurrentCell => GetBombCell();
-            public int Range => bombData != null ? bombData.range : 1;
-            public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
-            public bool HasExploded => hasExploded;
-            public bool IsExplosionHazardActive => hasExploded && Time.time < explosionHazardEndTime;
+        public Vector3Int CurrentCell => GetBombCell();
+        public int Range => bombData != null ? bombData.range : 1;
+        public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
+        public bool HasExploded => hasExploded;
+        public bool IsExplosionHazardActive => hasExploded && Time.time < explosionHazardEndTime;
+
+        [Header("Map References")]
+        [SerializeField] private Tilemap wallTilemap;
+        [SerializeField] private MapBuilder mapBuilder;
+        [SerializeField] private Tilemap referenceTilemap;
+
+        [Header("Explosion Prefabs")]
+        [SerializeField] private GameObject explosionCenter;
+        [SerializeField] private GameObject explosionMiddle;
+        [SerializeField] private GameObject explosionEnd;
         [SerializeField] private GameObject explosionHitWall;
         [SerializeField] private GameObject explosionHitBlock;
 

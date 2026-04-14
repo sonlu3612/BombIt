@@ -165,7 +165,7 @@ namespace _Project.Gameplay.AI.Scripts
                 playerController = GetComponent<PlayerController>();
 
             if (mapContext == null)
-                mapContext = FindObjectOfType<MapContext>();
+                mapContext = FindFirstObjectByType<MapContext>();
 
             Tilemap tilemap = mapContext != null && mapContext.ReferenceTilemap != null
                 ? mapContext.ReferenceTilemap

@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
@@ -13,13 +13,13 @@ EditorBuildSettings:
     guid: 1de8148bdf6658b459ac8f94c46fd3e5
   - enabled: 1
     path: Assets/_Project/Scenes/Map.unity
-    guid: 82e7c484f5f80604db4ff06eadb44334
+    guid: 92273a78665515b4791f0b621d547d8a
   - enabled: 1
     path: Assets/_Project/Scenes/Map2.unity
-    guid: f9e95b7d7b1b4c14cbebeeae9fec8a11
+    guid: 38750b0a108058646ad1d0a541c8ce42
   - enabled: 1
     path: Assets/_Project/Scenes/Map3.unity
-    guid: 47d23d1ba7164144195f336ac929d950
+    guid: d1a45959fc3be2d44bce4bbb07293dd4
   - enabled: 1
     path: Assets/_Project/Scenes/GameSetting.unity
     guid: cd2ae76b85c39dd4aa27f2e6c83fcf86

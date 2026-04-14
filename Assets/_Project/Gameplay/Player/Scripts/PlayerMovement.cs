@@ -105,17 +105,17 @@ public class PlayerMovement : MonoBehaviour
         initialized = true;
 
         // BotMovementTraceLog.LogPlayerMovement(
-            controller,
-            "INIT",
-            settledCell,
-            currentCell,
-            targetCell,
-            controller.GetNavigationWorldPosition(),
-            GetCellNavigationAnchor(currentCell),
-            requestedDirection,
-            currentMoveDirection,
-            isMoving,
-            $"rootOffset={navigationOffsetFromRoot.x:0.###},{navigationOffsetFromRoot.y:0.###},{navigationOffsetFromRoot.z:0.###} navOffset={navigationCellOffset.x:0.###},{navigationCellOffset.y:0.###},{navigationCellOffset.z:0.###}");
+        //     controller,
+        //     "INIT",
+        //     settledCell,
+        //     currentCell,
+        //     targetCell,
+        //     controller.GetNavigationWorldPosition(),
+        //     GetCellNavigationAnchor(currentCell),
+        //     requestedDirection,
+        //     currentMoveDirection,
+        //     isMoving,
+        //     $"rootOffset={navigationOffsetFromRoot.x:0.###},{navigationOffsetFromRoot.y:0.###},{navigationOffsetFromRoot.z:0.###} navOffset={navigationCellOffset.x:0.###},{navigationCellOffset.y:0.###},{navigationCellOffset.z:0.###}");
     }
 
     public void Move(Vector2 dir, float speed)
@@ -189,33 +189,33 @@ public class PlayerMovement : MonoBehaviour
 
             if (!occupancy.IsCellWalkable(nextCell, controller, true, blockPlayerCells))
             {
-                BotMovementTraceLog.LogBlockedAttempt(
-                    controller,
-                    settledCell,
-                    currentCell,
-                    nextCell,
-                    requestedDirection,
-                    BotGridUtility.IsWithinBounds(nextCell, occupancy.MapContext),
-                    occupancy.IsStaticallyBlocked(nextCell),
-                    occupancy.IsDynamicallyBlocked(nextCell, controller, true, blockPlayerCells));
+                // BotMovementTraceLog.LogBlockedAttempt(
+                //     controller,
+                //     settledCell,
+                //     currentCell,
+                //     nextCell,
+                //     requestedDirection,
+                //     BotGridUtility.IsWithinBounds(nextCell, occupancy.MapContext),
+                //     occupancy.IsStaticallyBlocked(nextCell),
+                //     occupancy.IsDynamicallyBlocked(nextCell, controller, true, blockPlayerCells));
                 SnapBackToCellCenter(deltaTime);
                 return;
             }
 
             targetCell = nextCell;
             activeMoveAxis = MovementAxis.Horizontal;
-            BotMovementTraceLog.LogPlayerMovement(
-                controller,
-                "START_STEP",
-                settledCell,
-                currentCell,
-                targetCell,
-                navPosition,
-                GetCellNavigationAnchor(currentCell),
-                requestedDirection,
-                currentMoveDirection,
-                isMoving,
-                "horizontal");
+            // BotMovementTraceLog.LogPlayerMovement(
+            //     controller,
+            //     "START_STEP",
+            //     settledCell,
+            //     currentCell,
+            //     targetCell,
+            //     navPosition,
+            //     GetCellNavigationAnchor(currentCell),
+            //     requestedDirection,
+            //     currentMoveDirection,
+            //     isMoving,
+            //     "horizontal");
             ContinueMoveToTarget(deltaTime);
             return;
         }
@@ -234,33 +234,33 @@ public class PlayerMovement : MonoBehaviour
 
         if (!occupancy.IsCellWalkable(verticalCell, controller, true, blockPlayerCells))
         {
-            BotMovementTraceLog.LogBlockedAttempt(
-                controller,
-                settledCell,
-                currentCell,
-                verticalCell,
-                requestedDirection,
-                BotGridUtility.IsWithinBounds(verticalCell, occupancy.MapContext),
-                occupancy.IsStaticallyBlocked(verticalCell),
-                occupancy.IsDynamicallyBlocked(verticalCell, controller, true, blockPlayerCells));
+            // BotMovementTraceLog.LogBlockedAttempt(
+            //     controller,
+            //     settledCell,
+            //     currentCell,
+            //     verticalCell,
+            //     requestedDirection,
+            //     BotGridUtility.IsWithinBounds(verticalCell, occupancy.MapContext),
+            //     occupancy.IsStaticallyBlocked(verticalCell),
+            //     occupancy.IsDynamicallyBlocked(verticalCell, controller, true, blockPlayerCells));
             SnapBackToCellCenter(deltaTime);
             return;
         }
 
         targetCell = verticalCell;
         activeMoveAxis = MovementAxis.Vertical;
-        BotMovementTraceLog.LogPlayerMovement(
-            controller,
-            "START_STEP",
-            settledCell,
-            currentCell,
-            targetCell,
-            navPosition,
-            GetCellNavigationAnchor(currentCell),
-            requestedDirection,
-            currentMoveDirection,
-            isMoving,
-            "vertical");
+        // BotMovementTraceLog.LogPlayerMovement(
+        //     controller,
+        //     "START_STEP",
+        //     settledCell,
+        //     currentCell,
+        //     targetCell,
+        //     navPosition,
+        //     GetCellNavigationAnchor(currentCell),
+        //     requestedDirection,
+        //     currentMoveDirection,
+        //     isMoving,
+        //     "vertical");
         ContinueMoveToTarget(deltaTime);
     }
 
@@ -309,24 +309,24 @@ public class PlayerMovement : MonoBehaviour
 
             SnapRootToCell(currentCell, !continuesMoving);
 
-            BotMovementTraceLog.LogPlayerMovement(
-                controller,
-                "COMMIT_CELL",
-                settledCell,
-                currentCell,
-                targetCell,
-                controller.GetNavigationWorldPosition(),
-                GetCellNavigationAnchor(currentCell),
-                requestedDirection,
-                currentMoveDirection,
-                isMoving,
-                $"continues={continuesMoving}");
+            // BotMovementTraceLog.LogPlayerMovement(
+            //     controller,
+            //     "COMMIT_CELL",
+            //     settledCell,
+            //     currentCell,
+            //     targetCell,
+            //     controller.GetNavigationWorldPosition(),
+            //     GetCellNavigationAnchor(currentCell),
+            //     requestedDirection,
+            //     currentMoveDirection,
+            //     isMoving,
+            //     $"continues={continuesMoving}");
         }
     }
 
     public void StopImmediately()
     {
-        Debug.Log($"[PM] StopImmediately settled={settledCell} current={currentCell} target={targetCell}");
+        // Debug.Log($"[PM] StopImmediately settled={settledCell} current={currentCell} target={targetCell}");
 
         requestedDirection = Vector2.zero;
         moveSpeed = 0f;
@@ -433,7 +433,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void SnapRootToCell(Vector3Int cell, bool resetMovementState = true)
     {
-        Debug.Log($"[PM] SnapRootToCell -> {cell} reset={resetMovementState}");
+        // Debug.Log($"[PM] SnapRootToCell -> {cell} reset={resetMovementState}");
 
         Vector3 navTarget = GetCellNavigationAnchor(cell);
         Vector3 rootTarget = navTarget + navigationOffsetFromRoot;
@@ -454,18 +454,18 @@ public class PlayerMovement : MonoBehaviour
     private void UpdateCurrentCellFromNavigation(Vector3 navigationPosition, Vector3Int destinationCell)
     {
 
-        BotMovementTraceLog.LogPlayerMovement(
-            controller,
-            "CROSS_BOUNDARY",
-            settledCell,
-            currentCell,
-            targetCell,
-            navigationPosition,
-            GetCellNavigationAnchor(destinationCell),
-            requestedDirection,
-            currentMoveDirection,
-            isMoving,
-            "occupancy advanced before settle");
+        // BotMovementTraceLog.LogPlayerMovement(
+        //     controller,
+        //     "CROSS_BOUNDARY",
+        //     settledCell,
+        //     currentCell,
+        //     targetCell,
+        //     navigationPosition,
+        //     GetCellNavigationAnchor(destinationCell),
+        //     requestedDirection,
+        //     currentMoveDirection,
+        //     isMoving,
+        //     "occupancy advanced before settle");
     }
 
     private Vector3 GetCellNavigationAnchor(Vector3Int cell)

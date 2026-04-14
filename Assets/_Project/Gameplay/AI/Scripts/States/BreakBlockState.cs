@@ -48,7 +48,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return false;
             }
 
-            if (!TryBuildPlan(sense, out preparedBlockCell, out preparedBombCell, out preparedApproachPath, out preparedEscapePath))
+            // Try to build approach path to any breakable block position
+            if (!TryBuildApproachPlan(sense, out preparedBlockCell, out preparedBombCell, out preparedApproachPath))
                 return false;
 
             hasPreparedPlan = true;
@@ -67,15 +68,18 @@ namespace _Project.Gameplay.AI.Scripts.States
                 targetBlockCell = preparedBlockCell;
                 bombCell = preparedBombCell;
                 approachPath = preparedApproachPath;
-                plannedEscapePath = preparedEscapePath;
                 ClearPreparedPlan();
             }
-            else if (!TryBuildPlan(sense, out targetBlockCell, out bombCell, out approachPath, out plannedEscapePath))
+            else if (!TryBuildApproachPlan(sense, out targetBlockCell, out bombCell, out approachPath))
             {
                 executor.Stop();
                 finished = true;
                 return;
             }
+
+            // Try to build escape path from bomb location
+            plannedEscapePath = null;
+            TryBuildEscapePath(bombCell, sense, out plannedEscapePath);
 
             blackboard.SetPath(approachPath);
         }
@@ -137,6 +141,50 @@ namespace _Project.Gameplay.AI.Scripts.States
             executor.Stop();
             blackboard.ClearPath();
             ClearPreparedPlan();
+        }
+
+        private bool TryBuildApproachPlan(
+            BotSenseContext sense,
+            out Vector3Int bestBlockCell,
+            out Vector3Int bestBombCell,
+            out List<Vector3Int> bestApproachPath)
+        {
+            bestBlockCell = default;
+            bestBombCell = default;
+            bestApproachPath = null;
+
+            int bestScore = int.MaxValue;
+
+            foreach (Vector3Int blockCell in sense.BreakableBlocks)
+            {
+                foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
+                {
+                    Vector3Int candidateBombCell = blockCell + dir;
+                    if (!BotGridUtility.IsWalkable(candidateBombCell, navigator.MapContext))
+                        continue;
+
+                    List<Vector3Int> approachPath = navigator.FindPath(
+                        sense.CurrentCell,
+                        candidateBombCell,
+                        config.avoidDangerCells ? sense.DangerCells : null,
+                        sense.BlockedCells,
+                        executor.Player);
+
+                    if (approachPath == null || approachPath.Count == 0)
+                        continue;
+
+                    int score = approachPath.Count;
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                        bestBlockCell = blockCell;
+                        bestBombCell = candidateBombCell;
+                        bestApproachPath = approachPath;
+                    }
+                }
+            }
+
+            return bestApproachPath != null;
         }
 
         private bool TryBuildPlan(

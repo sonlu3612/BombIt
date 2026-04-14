@@ -145,9 +145,21 @@ namespace _Project.Gameplay.AI.Scripts.States
                 blackboard.LastBombTime = Time.time;
                 blackboard.PlannedBombCell = bombCell;
                 blackboard.EscapePath = plannedEscapePath;
-                blackboard.EscapeCell = plannedEscapePath != null && plannedEscapePath.Count > 0
-                    ? plannedEscapePath[plannedEscapePath.Count - 1]
-                    : (Vector3Int?)null;
+                
+                // Set escape cell: prefer planned path end, otherwise use any safe cell
+                if (plannedEscapePath != null && plannedEscapePath.Count > 0)
+                {
+                    blackboard.EscapeCell = plannedEscapePath[plannedEscapePath.Count - 1];
+                }
+                else if (sense.SafeCells.Count > 0)
+                {
+                    // Fallback: pick any safe cell for emergency escape
+                    blackboard.EscapeCell = sense.SafeCells[0];
+                }
+                else
+                {
+                    blackboard.EscapeCell = null;
+                }
             }
 
             executor.Stop();

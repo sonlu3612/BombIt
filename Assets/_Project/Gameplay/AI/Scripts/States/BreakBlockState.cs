@@ -21,6 +21,8 @@ namespace _Project.Gameplay.AI.Scripts.States
         private List<Vector3Int> preparedApproachPath;
         private List<Vector3Int> preparedEscapePath;
 
+        private int arrivalFrameCount = 0;
+
         public string Name => "BreakBlock";
         public bool IsFinished => finished;
 
@@ -90,6 +92,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             {
                 executor.Stop();
                 finished = true;
+                arrivalFrameCount = 0;
                 return;
             }
 
@@ -97,16 +100,31 @@ namespace _Project.Gameplay.AI.Scripts.States
             {
                 executor.Stop();
                 finished = true;
+                arrivalFrameCount = 0;
                 return;
             }
 
             bool arrived = executor.FollowPath(blackboard);
             if (!arrived)
+            {
+                arrivalFrameCount = 0;
                 return;
+            }
+
+            // Arrived at target - wait for movement system to settle
+            arrivalFrameCount++;
+            if (arrivalFrameCount == 1)
+            {
+                // First frame after arrival - ensure movement stops and settles
+                executor.Stop();
+                return;
+            }
 
             if (!executor.Player.CanPlaceBomb)
             {
+                executor.Stop();
                 finished = true;
+                arrivalFrameCount = 0;
                 return;
             }
 
@@ -134,6 +152,7 @@ namespace _Project.Gameplay.AI.Scripts.States
 
             executor.Stop();
             finished = true;
+            arrivalFrameCount = 0;
         }
 
         public void Exit()
@@ -141,6 +160,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             executor.Stop();
             blackboard.ClearPath();
             ClearPreparedPlan();
+            arrivalFrameCount = 0;
         }
 
         private bool TryBuildApproachPlan(

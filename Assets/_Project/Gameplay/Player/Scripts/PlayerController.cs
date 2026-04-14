@@ -248,11 +248,34 @@ namespace _Project.Gameplay.Player.Scripts
 
         private void HandleAnimation()
         {
-            anim.SetFloat("MoveX", inputDir.x);
-            anim.SetFloat("MoveY", inputDir.y);
+            Vector2 animationDir = inputDir;
+            bool isActuallyMoving = false;
+
+            if (movement != null && movement.IsInitialized)
+            {
+                if (movement.IsMoving)
+                {
+                    animationDir = movement.CurrentMoveDirection;
+                    isActuallyMoving = animationDir != Vector2.zero;
+                }
+                else
+                {
+                    isActuallyMoving = false;
+                }
+            }
+            else
+            {
+                isActuallyMoving = inputDir != Vector2.zero;
+            }
+
+            if (animationDir != Vector2.zero)
+                lastDir = animationDir;
+
+            anim.SetFloat("MoveX", animationDir.x);
+            anim.SetFloat("MoveY", animationDir.y);
             anim.SetFloat("LastMoveX", lastDir.x);
             anim.SetFloat("LastMoveY", lastDir.y);
-            anim.SetBool("IsMoving", inputDir != Vector2.zero);
+            anim.SetBool("IsMoving", isActuallyMoving);
         }
 
         public void OnMove(InputValue value)
@@ -358,11 +381,17 @@ namespace _Project.Gameplay.Player.Scripts
                 inputDir = Vector2.zero;
         }
 
-        public void StopMoving()
+        public void StopMoving(bool immediate = true)
         {
             inputDir = Vector2.zero;
-            if (movement != null && movement.IsInitialized)
+
+            if (movement == null || !movement.IsInitialized)
+                return;
+
+            if (immediate)
                 movement.StopImmediately();
+            else
+                movement.StopSoftly();
         }
 
         public void AddSpeed(float amount) => player.AddSpeed(amount);

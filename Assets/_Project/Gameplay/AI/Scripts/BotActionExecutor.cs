@@ -34,7 +34,7 @@ namespace _Project.Gameplay.AI.Scripts
             if (player.inputDir != Vector2.zero)
                 BotRuntimeDebugLog.LogBotStop(player, player.GetLogicCell());
 
-            player.StopMoving();
+            player.StopMoving(false);
             lastLoggedMoveDirection = new Vector2(float.NaN, float.NaN);
             lastLoggedMoveTargetCell = null;
             lastLoggedPathIndex = -1;
@@ -62,7 +62,7 @@ namespace _Project.Gameplay.AI.Scripts
             // so stopping on CurrentCell == targetCell makes bots drift between cells.
             if (Mathf.Abs(delta.x) <= reachThreshold && Mathf.Abs(delta.y) <= reachThreshold)
             {
-                player.StopMoving();
+                player.StopMoving(false);
                 return;
             }
 
@@ -311,5 +311,4 @@ namespace _Project.Gameplay.AI.Scripts
         }
     }
 }
-
 

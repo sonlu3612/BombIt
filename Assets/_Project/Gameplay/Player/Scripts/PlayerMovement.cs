@@ -329,6 +329,7 @@ public class PlayerMovement : MonoBehaviour
         Debug.Log($"[PM] StopImmediately settled={settledCell} current={currentCell} target={targetCell}");
 
         requestedDirection = Vector2.zero;
+        moveSpeed = 0f;
         targetCell = null;
         activeMoveAxis = MovementAxis.None;
         currentMoveDirection = Vector2.zero;
@@ -336,6 +337,19 @@ public class PlayerMovement : MonoBehaviour
 
         currentCell = settledCell;
         SnapRootToCell(settledCell, true);
+    }
+
+    public void StopSoftly()
+    {
+        requestedDirection = Vector2.zero;
+        moveSpeed = 0f;
+
+        if (!targetCell.HasValue)
+        {
+            activeMoveAxis = MovementAxis.None;
+            currentMoveDirection = Vector2.zero;
+            isMoving = false;
+        }
     }
 
     private void SnapBackToCellCenter(float deltaTime)

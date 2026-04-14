@@ -9,6 +9,7 @@ namespace _Project.Gameplay.AI.Scripts.States
         private readonly BotNavigator navigator;
         private readonly BotActionExecutor executor;
         private readonly BotConfig config;
+        private const float FailedCandidateCooldown = 1f;
 
         private Vector3Int targetBlockCell;
         private Vector3Int bombCell;
@@ -223,10 +224,19 @@ namespace _Project.Gameplay.AI.Scripts.States
 
             foreach (Vector3Int blockCell in sense.BreakableBlocks)
             {
+                if (WasRecentlyRejectedBlock(blockCell))
+                    continue;
+
                 foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
                 {
                     Vector3Int candidateBombCell = blockCell + dir;
                     Debug.Log($"[PLAN] check block={blockCell} bombCell={candidateBombCell}");
+
+                    if (WasRecentlyRejectedBombCell(candidateBombCell))
+                    {
+                        Debug.Log($"[PLAN] reject recent failed bombCell={candidateBombCell}");
+                        continue;
+                    }
 
                     if (!BotGridUtility.IsWalkable(candidateBombCell, navigator.MapContext))
                     {
@@ -247,15 +257,22 @@ namespace _Project.Gameplay.AI.Scripts.States
                         continue;
                     }
 
+                    if (!TryBuildEscapePath(candidateBombCell, sense, out List<Vector3Int> escapePath))
+                    {
+                        Debug.Log($"[PLAN] reject no escape bombCell={candidateBombCell}");
+                        continue;
+                    }
+
                     Debug.Log($"[PLAN] accept path bombCell={candidateBombCell} len={approachPath.Count}");
 
-                    int score = approachPath.Count;
+                    int score = approachPath.Count + escapePath.Count;
                     if (score < bestScore)
                     {
                         bestScore = score;
                         bestBlockCell = blockCell;
                         bestBombCell = candidateBombCell;
                         bestApproachPath = approachPath;
+                        bestEscapePath = escapePath;
                     }
                 }
             }
@@ -336,6 +353,20 @@ namespace _Project.Gameplay.AI.Scripts.States
             }
 
             return false;
+        }
+
+        private bool WasRecentlyRejectedBombCell(Vector3Int candidateBombCell)
+        {
+            return blackboard.LastFailedBombCell.HasValue
+                && blackboard.LastFailedBombCell.Value == candidateBombCell
+                && Time.time - blackboard.LastFailedBombCellTime < FailedCandidateCooldown;
+        }
+
+        private bool WasRecentlyRejectedBlock(Vector3Int blockCell)
+        {
+            return blackboard.LastFailedBlockCell.HasValue
+                && blackboard.LastFailedBlockCell.Value == blockCell
+                && Time.time - blackboard.LastFailedBlockCellTime < FailedCandidateCooldown;
         }
 
         private void ClearPreparedPlan()

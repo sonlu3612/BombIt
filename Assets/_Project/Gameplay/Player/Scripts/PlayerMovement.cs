@@ -41,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 currentMoveDirection;
     private bool isMoving;
     private MovementAxis activeMoveAxis;
+    private bool occupancyMovedForCurrentStep;
 
     public bool IsInitialized => initialized;
     public Vector3Int SettledCell => settledCell;
@@ -49,6 +50,8 @@ public class PlayerMovement : MonoBehaviour
     public bool IsMoving => isMoving;
     public Vector3Int? TargetCell => targetCell;
     public Vector3 GetNavigationAnchorWorld(Vector3Int cell) => GetCellNavigationAnchor(cell);
+    [SerializeField, Range(0f, 1f)] private float earlyCellEnterPercent = 0.5f;
+
     public bool IsSettledOnCurrentCell()
     {
         if (!initialized || controller == null)
@@ -93,9 +96,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 initialNavigationPosition = controller.GetNavigationWorldPosition();
         navigationOffsetFromRoot = transform.position - initialNavigationPosition;
         currentCell = occupancy.WorldToCell(initialNavigationPosition);
-        // navigationCellOffset is intentionally zero: the nav anchor IS the cell center.
-        // Any visual offset (feet below sprite center) is already encoded in navigationOffsetFromRoot.
-        // Capturing spawn misalignment here would permanently bake the offset into all movement.
         navigationCellOffset = Vector3.zero;
         settledCell = currentCell;
 
@@ -103,19 +103,6 @@ public class PlayerMovement : MonoBehaviour
         occupancy.RegisterPlayer(controller, currentCell);
         registeredWithOccupancy = true;
         initialized = true;
-
-        // BotMovementTraceLog.LogPlayerMovement(
-        //     controller,
-        //     "INIT",
-        //     settledCell,
-        //     currentCell,
-        //     targetCell,
-        //     controller.GetNavigationWorldPosition(),
-        //     GetCellNavigationAnchor(currentCell),
-        //     requestedDirection,
-        //     currentMoveDirection,
-        //     isMoving,
-        //     $"rootOffset={navigationOffsetFromRoot.x:0.###},{navigationOffsetFromRoot.y:0.###},{navigationOffsetFromRoot.z:0.###} navOffset={navigationCellOffset.x:0.###},{navigationCellOffset.y:0.###},{navigationCellOffset.z:0.###}");
     }
 
     public void Move(Vector2 dir, float speed)
@@ -131,6 +118,7 @@ public class PlayerMovement : MonoBehaviour
         currentMoveDirection = Vector2.zero;
         isMoving = false;
         activeMoveAxis = MovementAxis.None;
+        occupancyMovedForCurrentStep = false;
 
         if (registeredWithOccupancy && occupancy != null && controller != null)
         {
@@ -189,33 +177,13 @@ public class PlayerMovement : MonoBehaviour
 
             if (!occupancy.IsCellWalkable(nextCell, controller, true, blockPlayerCells))
             {
-                // BotMovementTraceLog.LogBlockedAttempt(
-                //     controller,
-                //     settledCell,
-                //     currentCell,
-                //     nextCell,
-                //     requestedDirection,
-                //     BotGridUtility.IsWithinBounds(nextCell, occupancy.MapContext),
-                //     occupancy.IsStaticallyBlocked(nextCell),
-                //     occupancy.IsDynamicallyBlocked(nextCell, controller, true, blockPlayerCells));
                 SnapBackToCellCenter(deltaTime);
                 return;
             }
 
             targetCell = nextCell;
             activeMoveAxis = MovementAxis.Horizontal;
-            // BotMovementTraceLog.LogPlayerMovement(
-            //     controller,
-            //     "START_STEP",
-            //     settledCell,
-            //     currentCell,
-            //     targetCell,
-            //     navPosition,
-            //     GetCellNavigationAnchor(currentCell),
-            //     requestedDirection,
-            //     currentMoveDirection,
-            //     isMoving,
-            //     "horizontal");
+            occupancyMovedForCurrentStep = false;
             ContinueMoveToTarget(deltaTime);
             return;
         }
@@ -234,33 +202,13 @@ public class PlayerMovement : MonoBehaviour
 
         if (!occupancy.IsCellWalkable(verticalCell, controller, true, blockPlayerCells))
         {
-            // BotMovementTraceLog.LogBlockedAttempt(
-            //     controller,
-            //     settledCell,
-            //     currentCell,
-            //     verticalCell,
-            //     requestedDirection,
-            //     BotGridUtility.IsWithinBounds(verticalCell, occupancy.MapContext),
-            //     occupancy.IsStaticallyBlocked(verticalCell),
-            //     occupancy.IsDynamicallyBlocked(verticalCell, controller, true, blockPlayerCells));
             SnapBackToCellCenter(deltaTime);
             return;
         }
 
         targetCell = verticalCell;
         activeMoveAxis = MovementAxis.Vertical;
-        // BotMovementTraceLog.LogPlayerMovement(
-        //     controller,
-        //     "START_STEP",
-        //     settledCell,
-        //     currentCell,
-        //     targetCell,
-        //     navPosition,
-        //     GetCellNavigationAnchor(currentCell),
-        //     requestedDirection,
-        //     currentMoveDirection,
-        //     isMoving,
-        //     "vertical");
+        occupancyMovedForCurrentStep = false;
         ContinueMoveToTarget(deltaTime);
     }
 
@@ -285,22 +233,20 @@ public class PlayerMovement : MonoBehaviour
         Vector3 nextNav = MoveNavigationTowards(navTarget, moveSpeed, deltaTime, axis);
         UpdateCurrentCellFromNavigation(nextNav, destinationCell);
 
-        if (HasReachedTarget(navTarget, axis))
+        if (HasReachedTarget(nextNav, navTarget, axis))
         {
-            // Debug.Log($"[PM] COMMIT from settled={settledCell} to dest={destinationCell}");
-            Vector3Int previousCell = settledCell;
+            Vector3Int previousSettledCell = settledCell;
 
             currentCell = destinationCell;
             settledCell = destinationCell;
             targetCell = null;
             activeMoveAxis = MovementAxis.None;
 
-            // Only update occupancy if currentCell wasn't already updated by UpdateCurrentCellFromNavigation
-            if (previousCell != destinationCell)
-            {
-                occupancy.MovePlayer(controller, previousCell, destinationCell);
-            }
-            
+            if (!occupancyMovedForCurrentStep && previousSettledCell != destinationCell)
+                occupancy.MovePlayer(controller, previousSettledCell, destinationCell);
+
+            occupancyMovedForCurrentStep = false;
+
             bool continuesMoving = ShouldAutoQueueHeldMove() && TryQueueHeldMoveFromCurrentCell();
 
             if (!continuesMoving && controller != null && controller.IsBotControlled)
@@ -313,32 +259,18 @@ public class PlayerMovement : MonoBehaviour
             }
 
             SnapRootToCell(currentCell, !continuesMoving);
-
-            // BotMovementTraceLog.LogPlayerMovement(
-            //     controller,
-            //     "COMMIT_CELL",
-            //     settledCell,
-            //     currentCell,
-            //     targetCell,
-            //     controller.GetNavigationWorldPosition(),
-            //     GetCellNavigationAnchor(currentCell),
-            //     requestedDirection,
-            //     currentMoveDirection,
-            //     isMoving,
-            //     $"continues={continuesMoving}");
         }
     }
 
     public void StopImmediately()
     {
-        // Debug.Log($"[PM] StopImmediately settled={settledCell} current={currentCell} target={targetCell}");
-
         requestedDirection = Vector2.zero;
         moveSpeed = 0f;
         targetCell = null;
         activeMoveAxis = MovementAxis.None;
         currentMoveDirection = Vector2.zero;
         isMoving = false;
+        occupancyMovedForCurrentStep = false;
 
         currentCell = settledCell;
         SnapRootToCell(settledCell, true);
@@ -392,17 +324,15 @@ public class PlayerMovement : MonoBehaviour
         return nextNav;
     }
 
-    private bool HasReachedTarget(Vector3 navTarget, MovementAxis axis)
+    private bool HasReachedTarget(Vector3 navigationPosition, Vector3 navTarget, MovementAxis axis)
     {
-        Vector3 navPosition = controller.GetNavigationWorldPosition();
-
         if (axis == MovementAxis.Horizontal)
-            return Mathf.Abs(navPosition.x - navTarget.x) <= cellReachThreshold;
+            return Mathf.Abs(navigationPosition.x - navTarget.x) <= cellReachThreshold;
 
         if (axis == MovementAxis.Vertical)
-            return Mathf.Abs(navPosition.y - navTarget.y) <= cellReachThreshold;
+            return Mathf.Abs(navigationPosition.y - navTarget.y) <= cellReachThreshold;
 
-        return Vector2.Distance(navPosition, navTarget) <= cellReachThreshold;
+        return Vector2.Distance(navigationPosition, navTarget) <= cellReachThreshold;
     }
 
     private bool TryQueueHeldMoveFromCurrentCell()
@@ -420,6 +350,7 @@ public class PlayerMovement : MonoBehaviour
 
         targetCell = nextCell;
         activeMoveAxis = horizontalMove ? MovementAxis.Horizontal : MovementAxis.Vertical;
+        occupancyMovedForCurrentStep = false;
         currentMoveDirection = requestedDirection;
         isMoving = true;
         return true;
@@ -438,8 +369,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void SnapRootToCell(Vector3Int cell, bool resetMovementState = true)
     {
-        // Debug.Log($"[PM] SnapRootToCell -> {cell} reset={resetMovementState}");
-
         Vector3 navTarget = GetCellNavigationAnchor(cell);
         Vector3 rootTarget = navTarget + navigationOffsetFromRoot;
         rootTarget.z = transform.position.z;
@@ -458,21 +387,44 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateCurrentCellFromNavigation(Vector3 navigationPosition, Vector3Int destinationCell)
     {
-        // Check if player has visually crossed into the destination cell
-        // by comparing current navigation position cell with where they started
-        Vector3Int navigationCell = occupancy.WorldToCell(navigationPosition);
-        
-        if (navigationCell == destinationCell && currentCell != destinationCell)
+        if (!targetCell.HasValue || currentCell == destinationCell)
+            return;
+
+        Vector3 currentCenter = GetCellNavigationAnchor(currentCell);
+        Vector3 destinationCenter = GetCellNavigationAnchor(destinationCell);
+
+        bool crossedIntoDestination = false;
+
+        if (activeMoveAxis == MovementAxis.Horizontal)
         {
-            // Player has crossed the cell boundary - update currentCell immediately
-            Vector3Int previousCell = currentCell;
-            currentCell = destinationCell;
-            
-            // Update occupancy tracking for dynamic blocking
-            if (previousCell != destinationCell)
-            {
-                occupancy.MovePlayer(controller, previousCell, destinationCell);
-            }
+            float triggerX = Mathf.Lerp(currentCenter.x, destinationCenter.x, earlyCellEnterPercent);
+
+            if (destinationCell.x > currentCell.x)
+                crossedIntoDestination = navigationPosition.x >= triggerX;
+            else
+                crossedIntoDestination = navigationPosition.x <= triggerX;
+        }
+        else if (activeMoveAxis == MovementAxis.Vertical)
+        {
+            float triggerY = Mathf.Lerp(currentCenter.y, destinationCenter.y, earlyCellEnterPercent);
+
+            if (destinationCell.y > currentCell.y)
+                crossedIntoDestination = navigationPosition.y >= triggerY;
+            else
+                crossedIntoDestination = navigationPosition.y <= triggerY;
+        }
+
+        if (!crossedIntoDestination)
+            return;
+
+        Vector3Int previousCell = currentCell;
+        currentCell = destinationCell;
+        settledCell = destinationCell;  // Update visual representation immediately
+
+        if (!occupancyMovedForCurrentStep && previousCell != destinationCell)
+        {
+            occupancy.MovePlayer(controller, previousCell, destinationCell);
+            occupancyMovedForCurrentStep = true;
         }
     }
 
@@ -518,6 +470,7 @@ public class PlayerMovement : MonoBehaviour
         currentMoveDirection = Vector2.zero;
         isMoving = false;
         activeMoveAxis = MovementAxis.None;
+        occupancyMovedForCurrentStep = false;
 
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
@@ -529,5 +482,3 @@ public class PlayerMovement : MonoBehaviour
             occupancy.UnregisterPlayer(controller);
     }
 }
-
-

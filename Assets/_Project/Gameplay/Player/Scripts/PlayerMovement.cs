@@ -313,11 +313,12 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    public void StopImmediately()
+        public void StopImmediately()
     {
         requestedDirection = Vector2.zero;
         if (targetCell.HasValue && occupancy.WorldToCell(controller.GetNavigationWorldPosition()) == currentCell)
         {
+            settledCell = currentCell;
             targetCell = null;
             isMoving = false;
             activeMoveAxis = MovementAxis.None;
@@ -497,4 +498,5 @@ public class PlayerMovement : MonoBehaviour
             occupancy.UnregisterPlayer(controller);
     }
 }
+
 

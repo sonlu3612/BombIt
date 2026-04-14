@@ -72,12 +72,10 @@ namespace _Project.Gameplay.AI.Scripts
             {
                 new EscapeAfterBombState(blackboard, navigator, executor),
                 new EvadeBombState(blackboard, navigator, executor),
+                new GetItemState(blackboard, navigator, executor, config),
                 new PlantBombState(blackboard, navigator, executor, config),
                 new AttackEnemyState(blackboard, navigator, executor, config),
-                new GetItemState(blackboard, navigator, executor, config),
-                new BreakBlockState(blackboard, navigator, executor, config),
-                new WanderState(blackboard, navigator, executor, config),
-                new IdleState(blackboard, executor, config)
+                new BreakBlockState(blackboard, navigator, executor, config)
             };
 
             stateMachine = new BotStateMachine(states, blackboard);

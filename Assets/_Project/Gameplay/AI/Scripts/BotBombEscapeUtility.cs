@@ -51,21 +51,10 @@ namespace _Project.Gameplay.AI.Scripts
 
             foreach (Vector3Int candidate in escapeCandidates)
             {
-                HashSet<Vector3Int> combinedDangerCells = new HashSet<Vector3Int>(sense.DangerCells);
-
-                foreach (Vector3Int blastCell in futureBlast)
-                {
-                    // Quan trọng: cho phép start ở bombCell rồi mới bước ra ngoài
-                    if (blastCell == bombCell)
-                        continue;
-
-                    combinedDangerCells.Add(blastCell);
-                }
-
                 List<Vector3Int> candidatePath = navigator.FindPath(
                     bombCell,
                     candidate,
-                    combinedDangerCells,
+                    sense.DangerCells,
                     sense.BlockedCells,
                     player);
 

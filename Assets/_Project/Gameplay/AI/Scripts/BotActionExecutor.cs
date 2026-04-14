@@ -269,7 +269,7 @@ namespace _Project.Gameplay.AI.Scripts
             Vector3Int nextCell = currentCell + new Vector3Int(Mathf.RoundToInt(direction.x), Mathf.RoundToInt(direction.y), 0);
             GridOccupancyService occupancy = mapContext.GridOccupancyService;
             if (occupancy != null)
-                return occupancy.IsCellWalkable(nextCell, player, true, true);
+                return occupancy.IsCellWalkable(nextCell, player, true, false);
 
             return BotGridUtility.IsWalkable(nextCell, mapContext);
         }
@@ -291,7 +291,7 @@ namespace _Project.Gameplay.AI.Scripts
 
             bool targetWithinBounds = BotGridUtility.IsWithinBounds(targetCell, mapContext);
             bool targetWalkable = occupancy != null
-                ? occupancy.IsCellWalkable(targetCell, player, true, true)
+                ? occupancy.IsCellWalkable(targetCell, player, true, false)
                 : BotGridUtility.IsWalkable(targetCell, mapContext);
 
             BotMovementTraceLog.LogExecutorDecision(

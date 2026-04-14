@@ -105,8 +105,14 @@ namespace _Project.Gameplay.AI.Scripts
             UpdateProgressTracker(blackboard);
 
             Vector3Int nextCell = blackboard.CurrentPath[blackboard.CurrentPathIndex];
+            Vector3Int logicCell = player != null ? player.GetLogicCell() : Vector3Int.zero;
 
-            while (blackboard.CurrentPathIndex < blackboard.CurrentPath.Count && IsAtCell(nextCell))
+            // Advance pathIndex if the bot's settled occupancy cell (logicCell) has reached nextCell,
+            // OR if the distance-based threshold is satisfied.
+            // Using logicCell prevents MoveTowardsCell being called with currentCell == targetCell,
+            // which would produce zero cell-delta and fall through to raw-delta direction (causing reversals).
+            while (blackboard.CurrentPathIndex < blackboard.CurrentPath.Count
+                   && (logicCell == nextCell || IsAtCell(nextCell)))
             {
                 blackboard.CurrentPathIndex++;
 
@@ -117,6 +123,7 @@ namespace _Project.Gameplay.AI.Scripts
                 }
 
                 nextCell = blackboard.CurrentPath[blackboard.CurrentPathIndex];
+                logicCell = player != null ? player.GetLogicCell() : Vector3Int.zero;
             }
 
             if (IsStuck(blackboard))
@@ -195,7 +202,11 @@ namespace _Project.Gameplay.AI.Scripts
             if (cellDeltaY != 0)
                 return new Vector2(0f, Mathf.Sign(cellDeltaY));
 
-            return GetDeltaMoveDirection(delta);
+            // currentCell == targetCell: bot is already on this cell.
+            // FollowPath should have advanced past this step, but if it hasn't yet,
+            // return zero so the caller can handle it cleanly rather than
+            // using a near-zero delta that may produce a reversed direction.
+            return Vector2.zero;
         }
 
         private Vector2 GetDeltaMoveDirection(Vector2 delta)

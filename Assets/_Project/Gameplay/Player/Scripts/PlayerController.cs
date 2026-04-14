@@ -349,11 +349,16 @@ namespace _Project.Gameplay.Player.Scripts
 
             if (inputDir.x != 0)
                 inputDir.y = 0;
+            
+            if (movement != null && movement.IsInitialized)
+                movement.Move(inputDir, player.Speed);
         }
 
         public void StopMoving()
         {
             inputDir = Vector2.zero;
+            if (movement != null && movement.IsInitialized)
+                movement.Move(Vector2.zero, player.Speed);
         }
 
         public void AddSpeed(float amount) => player.AddSpeed(amount);
@@ -389,5 +394,6 @@ namespace _Project.Gameplay.Player.Scripts
         }
     }
 }
+
 
 

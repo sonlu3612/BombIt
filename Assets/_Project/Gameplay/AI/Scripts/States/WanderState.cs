@@ -11,6 +11,8 @@ namespace _Project.Gameplay.AI.Scripts.States
         private readonly BotConfig config;
 
         private bool finished;
+        private float idleStartTime;
+        private const float IdleDurationAtWaypoint = 0.3f;
 
         public string Name => "Wander";
         public bool IsFinished => finished;
@@ -35,6 +37,7 @@ namespace _Project.Gameplay.AI.Scripts.States
         public void Enter(BotSenseContext sense)
         {
             finished = false;
+            idleStartTime = 0f;
             blackboard.LastStateName = Name;
 
             List<Vector3Int> pool = BuildCandidatePool(sense);
@@ -62,8 +65,24 @@ namespace _Project.Gameplay.AI.Scripts.States
             bool done = executor.FollowPath(blackboard);
             if (done)
             {
-                executor.Stop();
-                finished = true;
+                // Path reached - idle at waypoint before allowing next state
+                if (idleStartTime <= 0f)
+                {
+                    executor.Stop();
+                    idleStartTime = Time.time;
+                    return;
+                }
+
+                // Check if idle duration has elapsed
+                if (Time.time - idleStartTime >= IdleDurationAtWaypoint)
+                {
+                    finished = true;
+                }
+            }
+            else
+            {
+                // Still following path - reset idle timer
+                idleStartTime = 0f;
             }
         }
 
@@ -71,6 +90,7 @@ namespace _Project.Gameplay.AI.Scripts.States
         {
             executor.Stop();
             blackboard.ClearPath();
+            idleStartTime = 0f;
         }
 
         private List<Vector3Int> BuildCandidatePool(BotSenseContext sense)

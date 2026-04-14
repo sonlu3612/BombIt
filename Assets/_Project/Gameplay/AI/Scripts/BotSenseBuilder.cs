@@ -120,6 +120,10 @@ namespace _Project.Gameplay.AI.Scripts
                 if (bomb == null)
                     continue;
 
+                // Only track active bombs (not exploded yet) or bombs still in hazard period
+                if (bomb.HasExploded && !bomb.IsExplosionHazardActive)
+                    continue;
+
                 sense.ActiveBombs.Add(bomb);
 
                 if (bomb.CurrentCell != sense.CurrentCell)

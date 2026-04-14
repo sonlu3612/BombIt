@@ -21,21 +21,15 @@ namespace _Project.Gameplay.Bomb.Scripts
         private Coroutine explodeRoutine;
         private bool hasExploded;
         private bool registeredInOccupancy;
+            
+            [SerializeField] private float postExplosionDamageDelay = 0.1f;
+            private float explosionHazardEndTime;
 
-        public Vector3Int CurrentCell => GetBombCell();
-        public int Range => bombData != null ? bombData.range : 1;
-        public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
-        public bool HasExploded => hasExploded;
-
-        [Header("Map References")]
-        [SerializeField] private Tilemap wallTilemap;
-        [SerializeField] private MapBuilder mapBuilder;
-        [SerializeField] private Tilemap referenceTilemap;
-
-        [Header("Explosion Prefabs")]
-        [SerializeField] private GameObject explosionCenter;
-        [SerializeField] private GameObject explosionMiddle;
-        [SerializeField] private GameObject explosionEnd;
+            public Vector3Int CurrentCell => GetBombCell();
+            public int Range => bombData != null ? bombData.range : 1;
+            public float RemainingTime => bombData != null ? Mathf.Max(0f, bombData.explodeTime - (Time.time - spawnedAt)) : 0f;
+            public bool HasExploded => hasExploded;
+            public bool IsExplosionHazardActive => hasExploded && Time.time < explosionHazardEndTime;
         [SerializeField] private GameObject explosionHitWall;
         [SerializeField] private GameObject explosionHitBlock;
 
@@ -143,6 +137,7 @@ namespace _Project.Gameplay.Bomb.Scripts
                 return;
 
             hasExploded = true;
+            explosionHazardEndTime = Time.time + postExplosionDamageDelay;
 
             if (explodeRoutine != null)
             {
@@ -154,7 +149,7 @@ namespace _Project.Gameplay.Bomb.Scripts
             Explode();
             onExplode?.Invoke();
 
-            Destroy(gameObject);
+            Destroy(gameObject, postExplosionDamageDelay + 0.05f);
         }
 
         private Vector3Int GetBombCell()

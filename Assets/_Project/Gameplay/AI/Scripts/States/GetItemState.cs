@@ -30,9 +30,16 @@ namespace _Project.Gameplay.AI.Scripts.States
 
         public bool CanEnter(BotSenseContext sense)
         {
-            return !sense.IsInDanger
-                   && sense.ItemCells.Count > 0
-                   && Random.value <= config.itemChance;
+            if (sense.IsInDanger || sense.ItemCells.Count == 0 || Random.value > config.itemChance)
+                return false;
+
+            foreach (Vector3Int itemCell in sense.ItemCells)
+            {
+                if (sense.FreeCells.Contains(itemCell))
+                    return true;
+            }
+
+            return false;
         }
 
         public void Enter(BotSenseContext sense)

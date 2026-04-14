@@ -78,7 +78,8 @@ namespace _Project.Gameplay.AI.Scripts
                 new GetItemState(blackboard, navigator, executor, config),   // ↓ xuống
 
                 new AttackEnemyState(blackboard, navigator, executor, config),
-                new BreakBlockState(blackboard, navigator, executor, config)
+                new BreakBlockState(blackboard, navigator, executor, config),
+                new WanderState(blackboard, navigator, executor, config)
             };
 
             stateMachine = new BotStateMachine(states, blackboard);

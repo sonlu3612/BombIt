@@ -50,7 +50,7 @@ namespace _Project.Gameplay.Bomb.Scripts
         [SerializeField] private float hitBlockVisualOffset;
 
         [Header("Debug")]
-        [SerializeField] private bool debugExplosionHitbox = true;
+        [SerializeField] private bool debugExplosionHitbox = false;
         [SerializeField] private Color debugCenterColor = Color.red;
         [SerializeField] private Color debugRangeColor = Color.yellow;
         [SerializeField] private Color debugBlockedColor = Color.gray;

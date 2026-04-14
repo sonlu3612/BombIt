@@ -32,7 +32,7 @@ namespace _Project.Gameplay.AI.Scripts
                 return;
 
             if (player.inputDir != Vector2.zero)
-                BotRuntimeDebugLog.LogBotStop(player, player.GetLogicCell());
+                {} // BotRuntimeDebugLog.LogBotStop(player, player.GetLogicCell());
 
             player.StopMoving(false);
             lastLoggedMoveDirection = new Vector2(float.NaN, float.NaN);
@@ -86,8 +86,8 @@ namespace _Project.Gameplay.AI.Scripts
 
             if (ShouldLogMove(targetCell, moveDir, pathIndex))
             {
-                BotRuntimeDebugLog.LogBotMoveCommand(player, currentCell, targetCell, moveDir, pathIndex, pathCount);
-                LogExecutorDecision(player.GetLogicCell(), occupancyCell, targetCell, currentWorld, delta, alignDelta, moveDir, usedAlignment, pathIndex, pathCount);
+                // BotRuntimeDebugLog.LogBotMoveCommand(player, currentCell, targetCell, moveDir, pathIndex, pathCount);
+                // LogExecutorDecision(player.GetLogicCell(), occupancyCell, targetCell, currentWorld, delta, alignDelta, moveDir, usedAlignment, pathIndex, pathCount);
                 lastLoggedMoveDirection = moveDir;
                 lastLoggedMoveTargetCell = targetCell;
                 lastLoggedPathIndex = pathIndex;
@@ -136,7 +136,7 @@ namespace _Project.Gameplay.AI.Scripts
 
             if (IsStuck(blackboard))
             {
-                BotRuntimeDebugLog.LogBotStuck(player, player.GetLogicCell(), nextCell, blackboard.CurrentPathIndex, blackboard.CurrentPath.Count);
+                // BotRuntimeDebugLog.LogBotStuck(player, player.GetLogicCell(), nextCell, blackboard.CurrentPathIndex, blackboard.CurrentPath.Count);
                 Stop();
                 return true;
             }

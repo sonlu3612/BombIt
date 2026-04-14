@@ -14,12 +14,12 @@ namespace _Project.Gameplay.AI.Scripts
         [SerializeField] private BotConfig config = new();
 
         [Header("Debug Draw")]
-        [SerializeField] private bool debugDrawAI = true;
-        [SerializeField] private bool debugDrawSense = true;
-        [SerializeField] private bool debugDrawPath = true;
-        [SerializeField] private bool debugDrawSearch = true;
-        [SerializeField] private bool debugDrawBlocked = true;
-        [SerializeField] private bool debugDrawDanger = true;
+        [SerializeField] private bool debugDrawAI = false;
+        [SerializeField] private bool debugDrawSense = false;
+        [SerializeField] private bool debugDrawPath = false;
+        [SerializeField] private bool debugDrawSearch = false;
+        [SerializeField] private bool debugDrawBlocked = false;
+        [SerializeField] private bool debugDrawDanger = false;
         [SerializeField] private bool debugDrawSafeCells = false;
         [SerializeField] private bool debugDrawVisitedCells = false;
         [SerializeField] private float debugCubeSize = 0.72f;
@@ -85,9 +85,9 @@ namespace _Project.Gameplay.AI.Scripts
             stateMachine = new BotStateMachine(states, blackboard);
             stateMachine.StateChanged += OnStateChanged;
 
-            BotRuntimeDebugLog.EnsureSession();
-            BotMovementTraceLog.EnsureSession();
-            BotRuntimeDebugLog.LogBotSpawn(playerController);
+            // BotRuntimeDebugLog.EnsureSession();
+            // BotMovementTraceLog.EnsureSession();
+            // BotRuntimeDebugLog.LogBotSpawn(playerController);
         }
 
         private void OnDestroy()
@@ -114,22 +114,22 @@ namespace _Project.Gameplay.AI.Scripts
             lastSense = sense;
             stateMachine.Update(sense);
 
-            BotRuntimeDebugLog.LogBotThink(
-                playerController,
-                sense,
-                blackboard,
-                stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None");
+            // BotRuntimeDebugLog.LogBotThink(
+            //     playerController,
+            //     sense,
+            //     blackboard,
+            //     stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None");
 
             LogPathIfChanged();
         }
 
         private void OnStateChanged(IBotState previousState, IBotState nextState)
         {
-            BotRuntimeDebugLog.LogBotStateChange(
-                playerController,
-                previousState != null ? previousState.Name : "None",
-                nextState != null ? nextState.Name : "None",
-                playerController != null ? playerController.GetLogicCell() : Vector3Int.zero);
+            // BotRuntimeDebugLog.LogBotStateChange(
+            //     playerController,
+            //     previousState != null ? previousState.Name : "None",
+            //     nextState != null ? nextState.Name : "None",
+            //     playerController != null ? playerController.GetLogicCell() : Vector3Int.zero);
         }
 
         private void LogPathIfChanged()
@@ -139,13 +139,13 @@ namespace _Project.Gameplay.AI.Scripts
                 return;
 
             lastLoggedPathSignature = signature;
-            BotRuntimeDebugLog.LogBotPath(
-                playerController,
-                stateMachine != null && stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None",
-                blackboard != null ? blackboard.CurrentPath : null,
-                blackboard != null ? blackboard.CurrentPathIndex : -1,
-                blackboard != null ? blackboard.CurrentTargetCell : null,
-                blackboard != null ? blackboard.EscapeCell : null);
+            // BotRuntimeDebugLog.LogBotPath(
+            //     playerController,
+            //     stateMachine != null && stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None",
+            //     blackboard != null ? blackboard.CurrentPath : null,
+            //     blackboard != null ? blackboard.CurrentPathIndex : -1,
+            //     blackboard != null ? blackboard.CurrentTargetCell : null,
+            //     blackboard != null ? blackboard.EscapeCell : null);
         }
 
         private string BuildPathSignature()

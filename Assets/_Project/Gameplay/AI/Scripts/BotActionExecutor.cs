@@ -48,7 +48,11 @@ namespace _Project.Gameplay.AI.Scripts
             Vector3 targetWorld = player.GetNavigationAnchorWorld(targetCell);
             Vector3 currentWorld = player.GetNavigationWorldPosition();
             Vector3Int occupancyCell = player.GetCurrentCell();
-            Vector3Int currentCell = occupancyCell;
+
+            // Use logicCell (settled/physics-committed cell) for direction math.
+            // occupancyCell can advance 1-2 cells ahead during movement, making
+            // targetCell diagonally offset → both axes non-zero → alignment oscillation.
+            Vector3Int currentCell = player.GetLogicCell();
             Vector3 currentCellCenter = player.GetNavigationAnchorWorld(currentCell);
             Vector2 delta = targetWorld - currentWorld;
             Vector2 alignDelta = currentCellCenter - currentWorld;
@@ -223,6 +227,13 @@ namespace _Project.Gameplay.AI.Scripts
         private bool TryGetAlignmentDirection(Vector3Int currentCell, Vector3Int targetCell, Vector2 alignDelta, out Vector2 alignmentDir)
         {
             alignmentDir = Vector2.zero;
+
+            // Only align when targetCell is exactly adjacent (Manhattan distance = 1).
+            // If currentCell is diagonally offset from targetCell (both axes differ),
+            // alignment would override the primary axis and cause direction oscillation.
+            int manhattanDist = Mathf.Abs(targetCell.x - currentCell.x) + Mathf.Abs(targetCell.y - currentCell.y);
+            if (manhattanDist != 1)
+                return false;
 
             bool movingHorizontally = targetCell.x != currentCell.x;
             bool movingVertically = targetCell.y != currentCell.y;

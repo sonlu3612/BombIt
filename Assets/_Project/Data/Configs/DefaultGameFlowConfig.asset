@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7fe5089584344788e4d8770de7ab9e6, type: 3}
+  m_Name: DefaultGameFlowConfig
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Systems.GameFlow.GameFlowConfig
+  mainMenuScene: MainMenu
+  gameSettingScene: GameSetting
+  singlePlayerCharacterScene: Characters 1
+  twoPlayerCharacterScene: Characters2
+  playerPrefab: {fileID: 6753420144820676736, guid: 2f9fcfa62e1bd3c40ba1314db1f39fc7, type: 3}
+  botPrefab: {fileID: 8757115619382414367, guid: 5c02f1da3671fdc4188cba6b168d7249, type: 3}
+  arenas:
+  - arena: 0
+    displayName: Beach
+    sceneName: Map
+    isSelectable: 0
+  - arena: 1
+    displayName: Bakery
+    sceneName: Map3
+    isSelectable: 1
+  - arena: 2
+    displayName: Forest
+    sceneName: Map2
+    isSelectable: 0
+  characters:
+  - characterId: 0
+    displayName: Character 1
+    animatorController: {fileID: 9100000, guid: 70e785d20b3e0d24cbd3a75e26b228a3, type: 2}
+    portraitSprite: {fileID: 4120901811166270815, guid: 605025930cec8264e8f5ca73356f2831, type: 3}
+  - characterId: 1
+    displayName: Character 2
+    animatorController: {fileID: 22100000, guid: fb4129430e0d5bb4ba15f4470274f996, type: 2}
+    portraitSprite: {fileID: -855298285791758126, guid: adddccf58d1350f4e8f06c15100bffd1, type: 3}
+  - characterId: 2
+    displayName: Character 3
+    animatorController: {fileID: 22100000, guid: d7b7890c0278bdf438fbabfdc35308a5, type: 2}
+    portraitSprite: {fileID: 5543025767652233760, guid: d52131b2c1b97274b998c662b13b15e8, type: 3}
+  - characterId: 3
+    displayName: Character 4
+    animatorController: {fileID: 22100000, guid: 099cf3f4de18acb4f91cf7e58a726535, type: 2}
+    portraitSprite: {fileID: 980382946053249801, guid: 6f8dd12d7bf4b6248900d67fa1bd00ba, type: 3}
+  easyBotConfig:
+    thinkInterval: 0.12
+    repathInterval: 0.15
+    findRange: 8
+    avoidDangerCells: 1
+    reachThreshold: 0.05
+    wanderMaxSearchCells: 24
+    wanderMinPathLength: 4
+    idleChance: 0.08
+    idleDurationRange: {x: 0.15, y: 0.45}
+    itemChance: 0.85
+    attackChance: 0.8
+    breakBlockChance: 0.9
+    plantBombChance: 0.95
+    bombCooldown: 0.35
+    attackSearchRange: 8
+    escapeSearchRange: 8
+  normalBotConfig:
+    thinkInterval: 0.08
+    repathInterval: 0.1
+    findRange: 10
+    avoidDangerCells: 1
+    reachThreshold: 0.04
+    wanderMaxSearchCells: 28
+    wanderMinPathLength: 5
+    idleChance: 0.03
+    idleDurationRange: {x: 0.08, y: 0.25}
+    itemChance: 0.95
+    attackChance: 0.92
+    breakBlockChance: 0.96
+    plantBombChance: 0.98
+    bombCooldown: 0.2
+    attackSearchRange: 10
+    escapeSearchRange: 10
+  hardBotConfig:
+    thinkInterval: 0.04
+    repathInterval: 0.05
+    findRange: 15
+    avoidDangerCells: 1
+    reachThreshold: 0.03
+    wanderMaxSearchCells: 35
+    wanderMinPathLength: 7
+    idleChance: 0
+    idleDurationRange: {x: 0.08, y: 0.25}
+    itemChance: 1
+    attackChance: 1
+    breakBlockChance: 1
+    plantBombChance: 1
+    bombCooldown: 0.1
+    attackSearchRange: 20
+    escapeSearchRange: 20

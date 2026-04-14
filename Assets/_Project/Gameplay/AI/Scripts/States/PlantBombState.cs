@@ -121,8 +121,21 @@ namespace _Project.Gameplay.AI.Scripts.States
             if (Time.time < blackboard.LastBombTime + config.bombCooldown)
                 return;
 
+            Vector3Int currentCell = sense.CurrentCell;
+            if (!TryBuildEscapePlan(currentCell, sense, out List<Vector3Int> escapePath, out Vector3Int? escapeCell))
+            {
+                executor.Stop();
+                finished = true;
+                return;
+            }
+
             if (executor.TryPlaceBomb())
+            {
                 blackboard.LastBombTime = Time.time;
+                blackboard.PlannedBombCell = currentCell;
+                blackboard.EscapePath = escapePath;
+                blackboard.EscapeCell = escapeCell;
+            }
 
             finished = true;
         }

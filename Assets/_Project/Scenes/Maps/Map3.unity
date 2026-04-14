@@ -3504,6 +3504,16 @@ MonoBehaviour:
   playerPrefab: {fileID: 8757115619382414367, guid: 2f9fcfa62e1bd3c40ba1314db1f39fc7, type: 3}
   mapWidth: 17
   mapHeight: 15
+  gameFlowConfig: {fileID: 0}
+  preferGameSession: 1
+  destroyExistingScenePlayers: 1
+  roundTransitionDelay: 1.5
+  useCustomWorldSpawnPoints: 1
+  customWorldSpawnPoints:
+  - {x: -6.5, y: -3, z: 0}
+  - {x: 7.5, y: -3, z: 0}
+  - {x: -6.5, y: -15, z: 0}
+  - {x: 7.5, y: -15, z: 0}
 --- !u!4 &1422315309
 Transform:
   m_ObjectHideFlags: 0

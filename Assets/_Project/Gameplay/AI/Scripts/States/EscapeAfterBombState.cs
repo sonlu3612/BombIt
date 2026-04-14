@@ -84,8 +84,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
-            bool done = executor.FollowPath(blackboard);
-            if (done)
+            BotActionExecutor.PathFollowResult followResult = executor.FollowPath(blackboard);
+            if (followResult != BotActionExecutor.PathFollowResult.InProgress)
             {
                 executor.Stop();
                 finished = true;

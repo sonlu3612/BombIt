@@ -10,14 +10,17 @@ public class MapBuilder : MonoBehaviour
     public Tilemap blockTilemap;
     public GameObject blockPrefab;
     public Transform blockContainer;
+    [SerializeField] private bool debugBuildLogs = true;
 
     private readonly Dictionary<Vector3Int, DestructibleBlock> blockMap = new();
 
     private void Start()
     {
+        LogBuildState("Before Build");
         BuildMap();
+        LogBuildState("After Build");
 
-        MapContext mapContext = FindObjectOfType<MapContext>();
+        MapContext mapContext = Object.FindFirstObjectByType<MapContext>();
         if (mapContext != null)
             BotRuntimeDebugLog.LogMapSnapshot(mapContext);
     }
@@ -25,6 +28,12 @@ public class MapBuilder : MonoBehaviour
     private void BuildMap()
     {
         blockMap.Clear();
+
+        if (blockTilemap == null)
+        {
+            Debug.LogError($"[{nameof(MapBuilder)}] Block Tilemap is missing in scene '{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}'.", this);
+            return;
+        }
 
         foreach (Vector3Int pos in blockTilemap.cellBounds.allPositionsWithin)
         {
@@ -38,6 +47,27 @@ public class MapBuilder : MonoBehaviour
             if (block != null)
                 blockMap[pos] = block;
         }
+    }
+
+    private void LogBuildState(string label)
+    {
+        if (!debugBuildLogs)
+            return;
+
+        int tileCount = 0;
+
+        if (blockTilemap != null)
+        {
+            foreach (Vector3Int pos in blockTilemap.cellBounds.allPositionsWithin)
+            {
+                if (blockTilemap.HasTile(pos))
+                    tileCount++;
+            }
+        }
+
+        Debug.Log(
+            $"[{nameof(MapBuilder)}] {label} | Scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} | Tilemap={(blockTilemap != null ? blockTilemap.name : "NULL")} | TileCount={tileCount} | BuiltBlocks={blockMap.Count} | ContainerChildren={(blockContainer != null ? blockContainer.childCount : -1)}",
+            this);
     }
 
     public bool HasBlock(Vector3Int cell)

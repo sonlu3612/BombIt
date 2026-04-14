@@ -34,20 +34,15 @@ namespace _Project.Gameplay.AI.Scripts.States
             finished = false;
             blackboard.LastStateName = Name;
 
-            List<Vector3Int> candidates = new();
-            foreach (Vector3Int cell in sense.SafeCells)
-            {
-                if (cell != sense.CurrentCell)
-                    candidates.Add(cell);
-            }
-
-            List<Vector3Int> path = navigator.FindShortestPathToAny(
-                sense.CurrentCell,
-                candidates,
-                sense.DangerCells,
-                sense.BlockedCells);
-
-            if (path == null || path.Count == 0)
+            if (!BotBombEscapeUtility.TryFindTimedEscapePath(
+                    navigator,
+                    executor.Player,
+                    sense.CurrentCell,
+                    sense,
+                    sense.DangerTimes,
+                    out List<Vector3Int> path)
+                || path == null
+                || path.Count == 0)
             {
                 executor.Stop();
                 finished = true;
@@ -79,8 +74,8 @@ namespace _Project.Gameplay.AI.Scripts.States
                 return;
             }
 
-            bool done = executor.FollowPath(blackboard);
-            if (done)
+            BotActionExecutor.PathFollowResult followResult = executor.FollowPath(blackboard);
+            if (followResult != BotActionExecutor.PathFollowResult.InProgress)
             {
                 executor.Stop();
                 finished = true;

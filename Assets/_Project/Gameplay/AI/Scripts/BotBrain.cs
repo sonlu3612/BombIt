@@ -31,7 +31,27 @@ namespace _Project.Gameplay.AI.Scripts
         private BotActionExecutor executor;
         private BotStateMachine stateMachine;
         private BotSenseContext lastSense;
-        private string lastLoggedPathSignature = string.Empty;
+
+        public void SetConfig(BotConfig newConfig)
+        {
+            if (newConfig == null)
+                return;
+
+            if (config == null)
+                config = new BotConfig();
+
+            config.CopyFrom(newConfig);
+
+            if (executor == null || mapContext == null || playerController == null)
+                return;
+
+            executor = new BotActionExecutor(
+                playerController,
+                mapContext.ReferenceTilemap != null ? mapContext.ReferenceTilemap : mapContext.WallTilemap,
+                config.reachThreshold);
+
+            stateMachine = BuildStateMachine();
+        }
 
         private void Awake()
         {
@@ -40,7 +60,7 @@ namespace _Project.Gameplay.AI.Scripts
 
         private void Start()
         {
-            mapContext = FindObjectOfType<MapContext>();
+            mapContext = Object.FindFirstObjectByType<MapContext>();
 
             if (playerController == null)
             {
@@ -63,29 +83,7 @@ namespace _Project.Gameplay.AI.Scripts
                 mapContext.ReferenceTilemap != null ? mapContext.ReferenceTilemap : mapContext.WallTilemap,
                 config.reachThreshold);
 
-            List<IBotState> states = new()
-            {
-                new EscapeAfterBombState(blackboard, navigator, executor),
-                new EvadeBombState(blackboard, navigator, executor),
-                new PlantBombState(blackboard, navigator, executor, config),
-                new AttackEnemyState(blackboard, navigator, executor, config),
-                new GetItemState(blackboard, navigator, executor, config),
-                new BreakBlockState(blackboard, navigator, executor, config),
-                new WanderState(blackboard, navigator, executor, config),
-                new IdleState(blackboard, executor, config)
-            };
-
-            stateMachine = new BotStateMachine(states, blackboard);
-            stateMachine.StateChanged += OnStateChanged;
-
-            BotRuntimeDebugLog.EnsureSession();
-            BotRuntimeDebugLog.LogBotSpawn(playerController);
-        }
-
-        private void OnDestroy()
-        {
-            if (stateMachine != null)
-                stateMachine.StateChanged -= OnStateChanged;
+            stateMachine = BuildStateMachine();
         }
 
         private void Update()
@@ -101,47 +99,23 @@ namespace _Project.Gameplay.AI.Scripts
             BotSenseContext sense = BotSenseBuilder.Build(playerController, mapContext, config);
             lastSense = sense;
             stateMachine.Update(sense);
-
-            BotRuntimeDebugLog.LogBotThink(
-                playerController,
-                sense,
-                blackboard,
-                stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None");
-
-            LogPathIfChanged();
         }
 
-        private void OnStateChanged(IBotState previousState, IBotState nextState)
+        private BotStateMachine BuildStateMachine()
         {
-            BotRuntimeDebugLog.LogBotStateChange(
-                playerController,
-                previousState != null ? previousState.Name : "None",
-                nextState != null ? nextState.Name : "None",
-                playerController != null ? playerController.GetCurrentCell() : Vector3Int.zero);
-        }
+            List<IBotState> states = new()
+            {
+                new EscapeAfterBombState(blackboard, navigator, executor),
+                new EvadeBombState(blackboard, navigator, executor),
+                new PlantBombState(blackboard, navigator, executor, config),
+                new AttackEnemyState(blackboard, navigator, executor, config),
+                new GetItemState(blackboard, navigator, executor, config),
+                new BreakBlockState(blackboard, navigator, executor, config),
+                new WanderState(blackboard, navigator, executor, config),
+                new IdleState(blackboard, executor, config)
+            };
 
-        private void LogPathIfChanged()
-        {
-            string signature = BuildPathSignature();
-            if (signature == lastLoggedPathSignature)
-                return;
-
-            lastLoggedPathSignature = signature;
-            BotRuntimeDebugLog.LogBotPath(
-                playerController,
-                stateMachine != null && stateMachine.CurrentState != null ? stateMachine.CurrentState.Name : "None",
-                blackboard != null ? blackboard.CurrentPath : null,
-                blackboard != null ? blackboard.CurrentPathIndex : -1,
-                blackboard != null ? blackboard.CurrentTargetCell : null,
-                blackboard != null ? blackboard.EscapeCell : null);
-        }
-
-        private string BuildPathSignature()
-        {
-            if (blackboard == null || blackboard.CurrentPath == null || blackboard.CurrentPath.Count == 0)
-                return "none";
-
-            return $"{blackboard.CurrentPathIndex}|{string.Join(">", blackboard.CurrentPath)}|target={blackboard.CurrentTargetCell}|escape={blackboard.EscapeCell}";
+            return new BotStateMachine(states);
         }
 
         private void OnDrawGizmos()
@@ -153,7 +127,7 @@ namespace _Project.Gameplay.AI.Scripts
                 playerController = GetComponent<PlayerController>();
 
             if (mapContext == null)
-                mapContext = FindObjectOfType<MapContext>();
+                mapContext = Object.FindFirstObjectByType<MapContext>();
 
             Tilemap tilemap = mapContext != null && mapContext.ReferenceTilemap != null
                 ? mapContext.ReferenceTilemap
@@ -255,5 +229,3 @@ namespace _Project.Gameplay.AI.Scripts
         }
     }
 }
-
-

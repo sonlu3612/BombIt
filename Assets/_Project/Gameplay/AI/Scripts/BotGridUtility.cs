@@ -28,9 +28,25 @@ namespace _Project.Gameplay.AI.Scripts
                    mapContext.MapBuilder.HasBlock(cell);
         }
 
+        public static bool IsWithinBounds(Vector3Int cell, MapContext mapContext)
+        {
+            if (mapContext == null)
+                return true;
+
+            if (mapContext.ReferenceTilemap != null)
+                return mapContext.ReferenceTilemap.cellBounds.Contains(cell);
+
+            if (mapContext.WallTilemap != null)
+                return mapContext.WallTilemap.cellBounds.Contains(cell);
+
+            return true;
+        }
+
         public static bool IsWalkable(Vector3Int cell, MapContext mapContext)
         {
-            return !IsWall(cell, mapContext) && !HasBlock(cell, mapContext);
+            return IsWithinBounds(cell, mapContext)
+                   && !IsWall(cell, mapContext)
+                   && !HasBlock(cell, mapContext);
         }
 
         public static bool IsAdjacent(Vector3Int a, Vector3Int b)

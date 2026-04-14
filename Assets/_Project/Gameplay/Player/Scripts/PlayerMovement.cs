@@ -34,9 +34,15 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 navigationOffsetFromRoot;
     private Vector3Int currentCell;
     private Vector3Int? targetCell;
+    private Vector2 currentMoveDirection;
+    private bool isMoving;
+    private MovementAxis activeMoveAxis;
 
     public bool IsInitialized => initialized;
     public Vector3Int CurrentCell => currentCell;
+    public Vector2 CurrentMoveDirection => currentMoveDirection;
+    public bool IsMoving => isMoving;
+    public Vector3Int? TargetCell => targetCell;
 
     private void Awake()
     {
@@ -81,6 +87,28 @@ public class PlayerMovement : MonoBehaviour
     {
         requestedDirection = NormalizeToCardinal(dir);
         moveSpeed = Mathf.Max(0f, speed);
+    }
+
+    public void FreezeForDeath()
+    {
+        requestedDirection = Vector2.zero;
+        targetCell = null;
+        currentMoveDirection = Vector2.zero;
+        isMoving = false;
+        activeMoveAxis = MovementAxis.None;
+
+        if (registeredWithOccupancy && occupancy != null && controller != null)
+        {
+            occupancy.UnregisterPlayer(controller);
+            registeredWithOccupancy = false;
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.Sleep();
+        }
     }
 
     private void FixedUpdate()
@@ -131,6 +159,7 @@ public class PlayerMovement : MonoBehaviour
             }
 
             targetCell = nextCell;
+            activeMoveAxis = MovementAxis.Horizontal;
             ContinueMoveToTarget(deltaTime);
             return;
         }
@@ -154,6 +183,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         targetCell = verticalCell;
+        activeMoveAxis = MovementAxis.Vertical;
         ContinueMoveToTarget(deltaTime);
     }
 
@@ -163,7 +193,9 @@ public class PlayerMovement : MonoBehaviour
             return;
 
         Vector3Int destinationCell = targetCell.Value;
-        MovementAxis axis = destinationCell.x != currentCell.x ? MovementAxis.Horizontal : MovementAxis.Vertical;
+        MovementAxis axis = activeMoveAxis != MovementAxis.None
+            ? activeMoveAxis
+            : destinationCell.x != currentCell.x ? MovementAxis.Horizontal : MovementAxis.Vertical;
 
         Vector3 currentCenter = occupancy.GetCellCenterWorld(currentCell);
         Vector3 navTarget = occupancy.GetCellCenterWorld(destinationCell);
@@ -173,16 +205,20 @@ public class PlayerMovement : MonoBehaviour
         else if (axis == MovementAxis.Vertical)
             navTarget.x = currentCenter.x;
 
-        MoveNavigationTowards(navTarget, moveSpeed, deltaTime, axis);
+        Vector3 nextNav = MoveNavigationTowards(navTarget, moveSpeed, deltaTime, axis);
+        UpdateCurrentCellFromNavigation(nextNav, destinationCell);
 
         if (HasReachedTarget(navTarget, axis))
         {
             Vector3Int previousCell = currentCell;
             currentCell = destinationCell;
             targetCell = null;
+            activeMoveAxis = MovementAxis.None;
 
             occupancy.MovePlayer(controller, previousCell, currentCell);
-            SnapRootToCell(currentCell);
+
+            bool continuesMoving = TryQueueHeldMoveFromCurrentCell();
+            SnapRootToCell(currentCell, !continuesMoving);
         }
     }
 
@@ -192,6 +228,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (Vector2.Distance(controller.GetNavigationWorldPosition(), navTarget) <= cellReachThreshold)
         {
+            currentMoveDirection = Vector2.zero;
+            isMoving = false;
+            activeMoveAxis = MovementAxis.None;
             SnapRootToCell(currentCell);
             return;
         }
@@ -199,7 +238,7 @@ public class PlayerMovement : MonoBehaviour
         MoveNavigationTowards(navTarget, Mathf.Max(moveSpeed, laneSnapSpeed), deltaTime, MovementAxis.None);
     }
 
-    private void MoveNavigationTowards(Vector3 navTarget, float speed, float deltaTime, MovementAxis axis)
+    private Vector3 MoveNavigationTowards(Vector3 navTarget, float speed, float deltaTime, MovementAxis axis)
     {
         Vector3 currentNav = controller.GetNavigationWorldPosition();
         Vector3 nextNav = Vector3.MoveTowards(currentNav, navTarget, speed * deltaTime);
@@ -209,10 +248,13 @@ public class PlayerMovement : MonoBehaviour
         else if (axis == MovementAxis.Vertical)
             nextNav.x = navTarget.x;
 
+        UpdateMovementState(nextNav - currentNav);
+
         Vector3 nextRoot = nextNav + navigationOffsetFromRoot;
         nextRoot.z = transform.position.z;
 
         rb.MovePosition(nextRoot);
+        return nextNav;
     }
 
     private bool HasReachedTarget(Vector3 navTarget, MovementAxis axis)
@@ -228,13 +270,68 @@ public class PlayerMovement : MonoBehaviour
         return Vector2.Distance(navPosition, navTarget) <= cellReachThreshold;
     }
 
-    private void SnapRootToCell(Vector3Int cell)
+    private bool TryQueueHeldMoveFromCurrentCell()
+    {
+        if (requestedDirection == Vector2.zero)
+            return false;
+
+        bool horizontalMove = Mathf.Abs(requestedDirection.x) > 0.1f;
+        Vector3Int nextCell = horizontalMove
+            ? currentCell + new Vector3Int(Mathf.RoundToInt(requestedDirection.x), 0, 0)
+            : currentCell + new Vector3Int(0, Mathf.RoundToInt(requestedDirection.y), 0);
+
+        if (!occupancy.IsCellWalkable(nextCell, controller, true, blockPlayerCells))
+            return false;
+
+        targetCell = nextCell;
+        activeMoveAxis = horizontalMove ? MovementAxis.Horizontal : MovementAxis.Vertical;
+        currentMoveDirection = requestedDirection;
+        isMoving = true;
+        return true;
+    }
+
+    private void SnapRootToCell(Vector3Int cell, bool resetMovementState = true)
     {
         Vector3 navTarget = occupancy.GetCellCenterWorld(cell);
         Vector3 rootTarget = navTarget + navigationOffsetFromRoot;
         rootTarget.z = transform.position.z;
 
         rb.position = rootTarget;
+
+        if (resetMovementState)
+        {
+            currentMoveDirection = Vector2.zero;
+            isMoving = false;
+        }
+    }
+
+    private void UpdateCurrentCellFromNavigation(Vector3 navigationPosition, Vector3Int destinationCell)
+    {
+        Vector3Int sampledCell = occupancy.WorldToCell(navigationPosition);
+        if (sampledCell == currentCell || sampledCell != destinationCell)
+            return;
+
+        Vector3Int previousCell = currentCell;
+        currentCell = sampledCell;
+        occupancy.MovePlayer(controller, previousCell, currentCell);
+    }
+
+    private void UpdateMovementState(Vector3 navigationDelta)
+    {
+        Vector2 delta = new Vector2(navigationDelta.x, navigationDelta.y);
+        if (delta.sqrMagnitude <= 0.000001f)
+        {
+            currentMoveDirection = Vector2.zero;
+            isMoving = false;
+            return;
+        }
+
+        isMoving = true;
+
+        if (Mathf.Abs(delta.x) >= Mathf.Abs(delta.y))
+            currentMoveDirection = new Vector2(Mathf.Sign(delta.x), 0f);
+        else
+            currentMoveDirection = new Vector2(0f, Mathf.Sign(delta.y));
     }
 
     private Vector2 NormalizeToCardinal(Vector2 dir)
@@ -252,6 +349,9 @@ public class PlayerMovement : MonoBehaviour
     {
         requestedDirection = Vector2.zero;
         targetCell = null;
+        currentMoveDirection = Vector2.zero;
+        isMoving = false;
+        activeMoveAxis = MovementAxis.None;
 
         if (rb != null)
             rb.linearVelocity = Vector2.zero;

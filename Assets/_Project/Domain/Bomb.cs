@@ -4,6 +4,8 @@ namespace _Project.Domain
 {
     public class Bomb
     {
+        public const float DefaultExplodeTime = 3f;
+
         public Vector2Int position { get; private set; }
         public float explodeTime { get; private set; }
         public int range { get; private set; }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using _Project.Gameplay.AI.Scripts;
 using _Project.Gameplay.Bomb.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
@@ -16,14 +17,13 @@ namespace _Project.Gameplay.Map.Scripts
 
         public MapContext MapContext => mapContext;
 
-        [System.Obsolete]
         private void Awake()
         {
             if (mapContext == null)
                 mapContext = GetComponent<MapContext>();
 
             if (mapContext == null)
-                mapContext = FindObjectOfType<MapContext>();
+                mapContext = Object.FindFirstObjectByType<MapContext>();
         }
 
         public Vector3Int WorldToCell(Vector3 worldPosition)
@@ -89,9 +89,33 @@ namespace _Project.Gameplay.Map.Scripts
             return false;
         }
 
+        public bool TryGetAnyPlayerAtCell(Vector3Int cell, out PlayerController foundPlayer, PlayerController ignorePlayer = null)
+        {
+            foundPlayer = null;
+
+            if (!playersByCell.TryGetValue(cell, out HashSet<PlayerController> players))
+                return false;
+
+            foreach (PlayerController player in players)
+            {
+                if (player == null)
+                    continue;
+
+                if (ignorePlayer != null && player == ignorePlayer)
+                    continue;
+
+                foundPlayer = player;
+                return true;
+            }
+
+            return false;
+        }
+
         public bool IsStaticallyBlocked(Vector3Int cell)
         {
-            return IsWall(cell) || HasBlock(cell);
+            return !BotGridUtility.IsWithinBounds(cell, mapContext)
+                   || IsWall(cell)
+                   || HasBlock(cell);
         }
 
         public bool IsDynamicallyBlocked(

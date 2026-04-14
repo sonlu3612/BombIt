@@ -1,4 +1,5 @@
 using UnityEngine;
+using _Project.Gameplay.Map.Scripts;
 
 namespace _Project.Gameplay.Block.Scripts
 {
@@ -40,8 +41,28 @@ namespace _Project.Gameplay.Block.Scripts
 
             if (itemPrefab != null)
             {
-                Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                Instantiate(itemPrefab, ResolveDropPosition(), Quaternion.identity);
             }
+        }
+
+        private Vector3 ResolveDropPosition()
+        {
+            MapContext mapContext = Object.FindFirstObjectByType<MapContext>();
+            GridOccupancyService occupancyService = mapContext != null ? mapContext.GridOccupancyService : null;
+
+            if (occupancyService != null)
+            {
+                Vector3Int cell = occupancyService.WorldToCell(transform.position);
+                Vector3 centeredPosition = occupancyService.GetCellCenterWorld(cell);
+                centeredPosition.z = 0f;
+                return centeredPosition;
+            }
+
+            Vector3 fallbackPosition = transform.position;
+            fallbackPosition.x = Mathf.Floor(fallbackPosition.x) + 0.5f;
+            fallbackPosition.y = Mathf.Floor(fallbackPosition.y) + 0.5f;
+            fallbackPosition.z = 0f;
+            return fallbackPosition;
         }
     }
 }

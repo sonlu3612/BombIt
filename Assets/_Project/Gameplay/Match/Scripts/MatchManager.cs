@@ -12,12 +12,11 @@ namespace _Project.Gameplay.Match.Scripts
         [Header("Scene Players/Bots")]
         [SerializeField] private PlayerController[] scenePlayers;
 
-        [System.Obsolete]
         private void Awake()
         {
             if (currentMap == null)
             {
-                currentMap = FindObjectOfType<MapContext>();
+                currentMap = Object.FindFirstObjectByType<MapContext>();
             }
 
             if (currentMap == null)
@@ -29,12 +28,11 @@ namespace _Project.Gameplay.Match.Scripts
             BindScenePlayers();
         }
 
-        [System.Obsolete]
         private void BindScenePlayers()
         {
             if (scenePlayers == null || scenePlayers.Length == 0)
             {
-                scenePlayers = FindObjectsOfType<PlayerController>();
+                scenePlayers = Object.FindObjectsByType<PlayerController>();
             }
 
             foreach (PlayerController player in scenePlayers)
@@ -68,7 +66,6 @@ namespace _Project.Gameplay.Match.Scripts
             return currentMap;
         }
 
-        [System.Obsolete]
         public void SetCurrentMap(MapContext mapContext)
         {
             currentMap = mapContext;

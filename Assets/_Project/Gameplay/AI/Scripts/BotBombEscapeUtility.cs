@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -7,7 +8,6 @@ namespace _Project.Gameplay.AI.Scripts
 {
     public static class BotBombEscapeUtility
     {
-        private const float DefaultBombFuseTime = 2f;
         private const float SafetyBuffer = 0.2f;
         private const float PerStepTurnPadding = 0.05f;
 
@@ -23,56 +23,171 @@ namespace _Project.Gameplay.AI.Scripts
             if (navigator == null || player == null || sense == null)
                 return false;
 
-            HashSet<Vector3Int> futureBlast = BotGridUtility.GetBlastCells(
+            Dictionary<Vector3Int, float> dangerDeadlines = BuildDangerDeadlines(
+                sense,
                 bombCell,
                 player.BombRangeStat,
                 navigator.MapContext);
 
-            List<Vector3Int> escapeCandidates = new();
-            foreach (Vector3Int cell in sense.FreeCells)
-            {
-                if (cell == bombCell)
-                    continue;
+            return TryFindTimedEscapePath(navigator, player, bombCell, sense, dangerDeadlines, out escapePath);
+        }
 
-                if (futureBlast.Contains(cell))
-                    continue;
+        public static bool TryFindTimedEscapePath(
+            BotNavigator navigator,
+            PlayerController player,
+            Vector3Int startCell,
+            BotSenseContext sense,
+            Dictionary<Vector3Int, float> dangerDeadlines,
+            out List<Vector3Int> escapePath)
+        {
+            escapePath = null;
 
-                if (sense.DangerCells.Contains(cell))
-                    continue;
-
-                escapeCandidates.Add(cell);
-            }
-
-            if (escapeCandidates.Count == 0)
+            if (navigator == null || navigator.MapContext == null || player == null || sense == null)
                 return false;
 
-            float bestTravelTime = float.MaxValue;
-            List<Vector3Int> bestPath = null;
+            float stepTravelTime = EstimateSingleStepTravelTime(player, navigator);
+            HashSet<Vector3Int> traversableCells = new(sense.FreeCells);
+            traversableCells.Add(startCell);
 
-            foreach (Vector3Int candidate in escapeCandidates)
+            Queue<Vector3Int> queue = new();
+            Dictionary<Vector3Int, Vector3Int> cameFrom = new();
+            Dictionary<Vector3Int, int> stepsByCell = new();
+
+            queue.Enqueue(startCell);
+            stepsByCell[startCell] = 0;
+
+            while (queue.Count > 0)
             {
-                List<Vector3Int> candidatePath = navigator.FindPath(
-                    bombCell,
-                    candidate,
-                    sense.DangerCells,
-                    sense.BlockedCells);
+                Vector3Int current = queue.Dequeue();
+                int currentSteps = stepsByCell[current];
 
-                if (candidatePath == null || candidatePath.Count <= 1)
-                    continue;
-
-                float travelTime = EstimateTravelTime(candidatePath, player, navigator);
-                if (travelTime >= DefaultBombFuseTime - SafetyBuffer)
-                    continue;
-
-                if (travelTime < bestTravelTime)
+                if (current != startCell && !dangerDeadlines.ContainsKey(current))
                 {
-                    bestTravelTime = travelTime;
-                    bestPath = candidatePath;
+                    escapePath = ReconstructPath(cameFrom, startCell, current);
+                    return true;
+                }
+
+                foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
+                {
+                    Vector3Int next = current + dir;
+                    if (stepsByCell.ContainsKey(next))
+                        continue;
+
+                    if (!traversableCells.Contains(next))
+                        continue;
+
+                    if (!IsTraversalCellWalkable(navigator, player, next, sense.BlockedCells))
+                        continue;
+
+                    int nextSteps = currentSteps + 1;
+                    float arrivalTime = nextSteps * stepTravelTime;
+                    if (!CanReachCellBeforeDanger(next, arrivalTime, dangerDeadlines))
+                        continue;
+
+                    cameFrom[next] = current;
+                    stepsByCell[next] = nextSteps;
+
+                    if (!dangerDeadlines.ContainsKey(next))
+                    {
+                        escapePath = ReconstructPath(cameFrom, startCell, next);
+                        return true;
+                    }
+
+                    queue.Enqueue(next);
                 }
             }
 
-            escapePath = bestPath;
-            return bestPath != null;
+            return false;
+        }
+
+        private static Dictionary<Vector3Int, float> BuildDangerDeadlines(
+            BotSenseContext sense,
+            Vector3Int futureBombCell,
+            int futureBombRange,
+            MapContext mapContext)
+        {
+            Dictionary<Vector3Int, float> deadlines = new(sense.DangerTimes);
+            HashSet<Vector3Int> futureBlast = BotGridUtility.GetBlastCells(futureBombCell, futureBombRange, mapContext);
+
+            foreach (Vector3Int cell in futureBlast)
+            {
+                float existingDeadline = deadlines.TryGetValue(cell, out float deadline)
+                    ? deadline
+                    : float.MaxValue;
+
+                deadlines[cell] = Mathf.Min(existingDeadline, _Project.Domain.Bomb.DefaultExplodeTime);
+            }
+
+            return deadlines;
+        }
+
+        private static bool IsTraversalCellWalkable(
+            BotNavigator navigator,
+            PlayerController player,
+            Vector3Int cell,
+            HashSet<Vector3Int> blockedCells)
+        {
+            MapContext mapContext = navigator.MapContext;
+
+            if (!BotGridUtility.IsWithinBounds(cell, mapContext))
+                return false;
+
+            GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
+
+            if (occupancy != null)
+            {
+                if (occupancy.IsStaticallyBlocked(cell))
+                    return false;
+
+                if (blockedCells != null && blockedCells.Contains(cell))
+                    return false;
+
+                if (occupancy.IsDynamicallyBlocked(cell, player, true, true))
+                    return false;
+            }
+            else
+            {
+                if (!BotGridUtility.IsWalkable(cell, mapContext))
+                    return false;
+
+                if (blockedCells != null && blockedCells.Contains(cell))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool CanReachCellBeforeDanger(
+            Vector3Int cell,
+            float arrivalTime,
+            Dictionary<Vector3Int, float> dangerDeadlines)
+        {
+            if (dangerDeadlines == null || !dangerDeadlines.TryGetValue(cell, out float deadline))
+                return true;
+
+            if (deadline <= 0f)
+                return false;
+
+            return arrivalTime < deadline - SafetyBuffer;
+        }
+
+        private static List<Vector3Int> ReconstructPath(
+            Dictionary<Vector3Int, Vector3Int> cameFrom,
+            Vector3Int start,
+            Vector3Int target)
+        {
+            List<Vector3Int> path = new();
+            Vector3Int current = target;
+            path.Add(current);
+
+            while (current != start)
+            {
+                current = cameFrom[current];
+                path.Add(current);
+            }
+
+            path.Reverse();
+            return path;
         }
 
         private static float EstimateTravelTime(List<Vector3Int> path, PlayerController player, BotNavigator navigator)
@@ -80,11 +195,16 @@ namespace _Project.Gameplay.AI.Scripts
             if (path == null || path.Count <= 1 || player == null)
                 return float.MaxValue;
 
-            float speed = Mathf.Max(0.1f, player.MoveSpeedStat);
-            float cellDistance = GetCellTravelDistance(navigator);
             int steps = path.Count - 1;
 
-            return (steps * cellDistance / speed) + (steps * PerStepTurnPadding);
+            return steps * EstimateSingleStepTravelTime(player, navigator);
+        }
+
+        private static float EstimateSingleStepTravelTime(PlayerController player, BotNavigator navigator)
+        {
+            float speed = Mathf.Max(0.1f, player.MoveSpeedStat);
+            float cellDistance = GetCellTravelDistance(navigator);
+            return (cellDistance / speed) + PerStepTurnPadding;
         }
 
         private static float GetCellTravelDistance(BotNavigator navigator)

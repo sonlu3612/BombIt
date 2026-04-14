@@ -51,10 +51,19 @@ namespace _Project.Gameplay.AI.Scripts
 
             foreach (Vector3Int candidate in escapeCandidates)
             {
+                // Combine future blast cells with current danger cells
+                // This ensures pathfinding avoids the bomb's blast zone even though
+                // the bomb hasn't been placed in the world yet during plan calculation
+                HashSet<Vector3Int> combinedDangerCells = new(sense.DangerCells);
+                foreach (Vector3Int blastCell in futureBlast)
+                {
+                    combinedDangerCells.Add(blastCell);
+                }
+
                 List<Vector3Int> candidatePath = navigator.FindPath(
                     bombCell,
                     candidate,
-                    sense.DangerCells,
+                    combinedDangerCells,
                     sense.BlockedCells,
                     player);
 

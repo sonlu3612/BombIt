@@ -48,7 +48,7 @@ namespace _Project.Gameplay.Player.Scripts
         [SerializeField] private Color debugColliderColor = Color.cyan;
 
         private int currentBomb;
-        private SpriteRenderer spriteRenderer;
+        private SpriteRenderer[] spriteRenderers;
         private bool isDying = false;
         private bool controlsLocked;
         private float invulnerableUntilTime;
@@ -70,7 +70,7 @@ namespace _Project.Gameplay.Player.Scripts
             anim = GetComponent<Animator>();
             movement = GetComponent<PlayerMovement>();
             botBrain = GetComponent<BotBrain>();
-            spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
             cachedCollider = GetComponent<Collider2D>();
             CacheNavigationLocalOffset();
 
@@ -411,9 +411,9 @@ namespace _Project.Gameplay.Player.Scripts
 
         private System.Collections.IEnumerator BlinkCoroutine(float duration, int blinkCount, bool unlockControlsAtEnd)
         {
-            if (spriteRenderer == null)
+            if (spriteRenderers == null || spriteRenderers.Length == 0)
             {
-                yield return new WaitForSeconds(duration);
+                yield return new WaitForSecondsRealtime(duration);
 
                 if (unlockControlsAtEnd)
                     controlsLocked = false;
@@ -433,14 +433,14 @@ namespace _Project.Gameplay.Player.Scripts
 
             while (Time.time < endTime)
             {
-                spriteRenderer.enabled = false;
-                yield return new WaitForSeconds(blinkInterval);
+                SetRenderersVisible(false);
+                yield return new WaitForSecondsRealtime(blinkInterval);
 
-                spriteRenderer.enabled = true;
-                yield return new WaitForSeconds(blinkInterval);
+                SetRenderersVisible(true);
+                yield return new WaitForSecondsRealtime(blinkInterval);
             }
 
-            spriteRenderer.enabled = true;
+            SetRenderersVisible(true);
 
             if (unlockControlsAtEnd)
                 controlsLocked = false;
@@ -456,8 +456,20 @@ namespace _Project.Gameplay.Player.Scripts
                 blinkRoutine = null;
             }
 
-            if (resetVisible && spriteRenderer != null)
-                spriteRenderer.enabled = true;
+            if (resetVisible)
+                SetRenderersVisible(true);
+        }
+
+        private void SetRenderersVisible(bool isVisible)
+        {
+            if (spriteRenderers == null)
+                return;
+
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null)
+                    spriteRenderers[i].enabled = isVisible;
+            }
         }
 
         public void ClearMoveInput()

@@ -58,8 +58,13 @@ namespace _Project.Gameplay.AI.Scripts
                     if (visited.Contains(next))
                         continue;
 
-                    GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
+                    if (!BotGridUtility.IsWithinBounds(next, mapContext))
+                    {
+                        LastRejectedSolid.Add(next);
+                        continue;
+                    }
 
+                    GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
 
                     if (occupancy != null)
                     {

@@ -104,7 +104,7 @@ public class PlayerMovement : MonoBehaviour
         registeredWithOccupancy = true;
         initialized = true;
 
-        BotMovementTraceLog.LogPlayerMovement(
+        // BotMovementTraceLog.LogPlayerMovement(
             controller,
             "INIT",
             settledCell,
@@ -287,7 +287,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (HasReachedTarget(navTarget, axis))
         {
-            Debug.Log($"[PM] COMMIT from settled={settledCell} to dest={destinationCell}");
+            // Debug.Log($"[PM] COMMIT from settled={settledCell} to dest={destinationCell}");
             Vector3Int previousCell = settledCell;
 
             currentCell = destinationCell;

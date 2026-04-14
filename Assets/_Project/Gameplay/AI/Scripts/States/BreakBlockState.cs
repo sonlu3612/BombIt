@@ -65,7 +65,7 @@ namespace _Project.Gameplay.AI.Scripts.States
                 out preparedApproachPath,
                 out preparedEscapePath);
 
-            Debug.Log($"[BB] CanEnter BreakBlock ok={ok} current={sense.CurrentCell} breakable={sense.BreakableBlocks.Count}");
+            // Debug.Log($"[BB] CanEnter BreakBlock ok={ok} current={sense.CurrentCell} breakable={sense.BreakableBlocks.Count}");
             hasPreparedPlan = ok;
             return ok;
         }
@@ -139,7 +139,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             // the state machine can rebuild a fresh plan instead of waiting forever.
             if (sense.CurrentCell != bombCell)
             {
-                Debug.Log($"[BB] Abort plan: arrived by path but not on bombCell. current={sense.CurrentCell} bombCell={bombCell} targetBlock={targetBlockCell} arrivalFrames={arrivalFrameCount}");
+                // Debug.Log($"[BB] Abort plan: arrived by path but not on bombCell. current={sense.CurrentCell} bombCell={bombCell} targetBlock={targetBlockCell} arrivalFrames={arrivalFrameCount}");
 
                 blackboard.LastFailedBombCell = bombCell;
                 blackboard.LastFailedBombCellTime = Time.time;
@@ -173,11 +173,11 @@ namespace _Project.Gameplay.AI.Scripts.States
                 hasEscape = TryBuildEscapePath(bombCell, sense, out plannedEscapePath);
             }
 
-            Debug.Log($"[BB] EscapeCheck bombCell={bombCell} hasEscape={hasEscape} pathCount={(plannedEscapePath != null ? plannedEscapePath.Count : -1)}");
+            // Debug.Log($"[BB] EscapeCheck bombCell={bombCell} hasEscape={hasEscape} pathCount={(plannedEscapePath != null ? plannedEscapePath.Count : -1)}");
 
             if (!hasEscape || plannedEscapePath == null || plannedEscapePath.Count <= 1)
             {
-                Debug.Log($"[BB] Skip bomb: no valid escape for bombCell={bombCell}");
+                // Debug.Log($"[BB] Skip bomb: no valid escape for bombCell={bombCell}");
 
                 blackboard.LastFailedBombCell = bombCell;
                 blackboard.LastFailedBombCellTime = Time.time;
@@ -191,7 +191,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             }
 
             bool placed = executor.TryPlaceBomb();
-            Debug.Log($"[BB] TryPlaceBomb result={placed} canPlace={executor.Player.CanPlaceBomb} navSettled={executor.Player.IsNavigationSettled}");
+            // Debug.Log($"[BB] TryPlaceBomb result={placed} canPlace={executor.Player.CanPlaceBomb} navSettled={executor.Player.IsNavigationSettled}");
 
             if (placed)
             {
@@ -202,7 +202,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             }
             else
             {
-                Debug.Log($"[BB] Bomb placement failed at bombCell={bombCell}");
+                // Debug.Log($"[BB] Bomb placement failed at bombCell={bombCell}");
 
                 blackboard.LastFailedBombCell = bombCell;
                 blackboard.LastFailedBombCellTime = Time.time;
@@ -244,17 +244,17 @@ namespace _Project.Gameplay.AI.Scripts.States
                 foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
                 {
                     Vector3Int candidateBombCell = blockCell + dir;
-                    Debug.Log($"[PLAN] check block={blockCell} bombCell={candidateBombCell}");
+                    // Debug.Log($"[PLAN] check block={blockCell} bombCell={candidateBombCell}");
 
                     if (WasRecentlyRejectedBombCell(candidateBombCell))
                     {
-                        Debug.Log($"[PLAN] reject recent failed bombCell={candidateBombCell}");
+                        // Debug.Log($"[PLAN] reject recent failed bombCell={candidateBombCell}");
                         continue;
                     }
 
                     if (!BotGridUtility.IsWalkable(candidateBombCell, navigator.MapContext))
                     {
-                        Debug.Log($"[PLAN] reject not walkable bombCell={candidateBombCell}");
+                        // Debug.Log($"[PLAN] reject not walkable bombCell={candidateBombCell}");
                         continue;
                     }
 
@@ -267,17 +267,17 @@ namespace _Project.Gameplay.AI.Scripts.States
 
                     if (approachPath == null || approachPath.Count == 0)
                     {
-                        Debug.Log($"[PLAN] reject no path bombCell={candidateBombCell}");
+                        // Debug.Log($"[PLAN] reject no path bombCell={candidateBombCell}");
                         continue;
                     }
 
                     if (!TryBuildEscapePath(candidateBombCell, sense, out List<Vector3Int> escapePath))
                     {
-                        Debug.Log($"[PLAN] reject no escape bombCell={candidateBombCell}");
+                        // Debug.Log($"[PLAN] reject no escape bombCell={candidateBombCell}");
                         continue;
                     }
 
-                    Debug.Log($"[PLAN] accept path bombCell={candidateBombCell} len={approachPath.Count}");
+                    // Debug.Log($"[PLAN] accept path bombCell={candidateBombCell} len={approachPath.Count}");
 
                     int score = approachPath.Count + escapePath.Count;
                     if (score < bestScore)
@@ -292,7 +292,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             }
 
             bool ok = bestApproachPath != null;
-            Debug.Log($"[PLAN] final ok={ok} bestBomb={bestBombCell} bestBlock={bestBlockCell} bestLen={(bestApproachPath != null ? bestApproachPath.Count : -1)}");
+            // Debug.Log($"[PLAN] final ok={ok} bestBomb={bestBombCell} bestBlock={bestBlockCell} bestLen={(bestApproachPath != null ? bestApproachPath.Count : -1)}");
             return ok;
         }
 
@@ -327,7 +327,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             BotSenseContext sense,
             out List<Vector3Int> escapePath)
         {
-            Debug.Log($"[BB] Arrived bombCell={candidateBombCell} targetBlock={targetBlockCell} settled={executor.Player.GetLogicCell()} canPlace={executor.Player.CanPlaceBomb} navSettled={executor.Player.IsNavigationSettled}");
+            // Debug.Log($"[BB] Arrived bombCell={candidateBombCell} targetBlock={targetBlockCell} settled={executor.Player.GetLogicCell()} canPlace={executor.Player.CanPlaceBomb} navSettled={executor.Player.IsNavigationSettled}");
             escapePath = null;
 
             bool found = BotBombEscapeUtility.TryFindEscapePath(

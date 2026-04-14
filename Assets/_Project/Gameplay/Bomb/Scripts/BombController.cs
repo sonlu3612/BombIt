@@ -118,12 +118,12 @@ namespace _Project.Gameplay.Bomb.Scripts
                     continue;
 
                 Vector3Int playerCell = player.GetCurrentCell();
-                Debug.Log($"Explosion cell = {explosionCell}, Player cell = {playerCell}, Player = {player.name}");
+                // Debug.Log($"Explosion cell = {explosionCell}, Player cell = {playerCell}, Player = {player.name}");
 
                 if (playerCell != explosionCell)
                     continue;
 
-                Debug.Log($"PLAYER HIT: {player.name}");
+                // Debug.Log($"PLAYER HIT: {player.name}");
                 damagedPlayersThisExplosion.Add(player);
                 player.TakeDamage();
             }
@@ -194,7 +194,7 @@ namespace _Project.Gameplay.Bomb.Scripts
             damagedPlayersThisExplosion.Clear();
 
             Vector3Int centerCell = GetBombCell();
-            BotRuntimeDebugLog.LogBombExploded(this, centerCell, bombData != null ? bombData.range : 1);
+            // BotRuntimeDebugLog.LogBombExploded(this, centerCell, bombData != null ? bombData.range : 1);
             AudioManager.Instance?.PlayBombExplosion();
 
             GameObject center = Instantiate(explosionCenter, transform.position, Quaternion.identity);

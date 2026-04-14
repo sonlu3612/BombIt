@@ -35,27 +35,60 @@ namespace _Project.Gameplay.AI.Scripts
             if (start == target)
             {
                 LastPath = new List<Vector3Int> { start };
-                BotMovementTraceLog.LogPathSummary("start-is-target", start, target, mapContext, 1, 0, 0, 0, LastPath.Count);
+                BotMovementTraceLog.LogPathSummary(
+                    "start-is-target",
+                    start,
+                    target,
+                    mapContext,
+                    1,
+                    0,
+                    0,
+                    0,
+                    LastPath.Count);
                 return LastPath;
             }
 
-            Queue<Vector3Int> queue = new();
-            Dictionary<Vector3Int, Vector3Int> cameFrom = new();
-            HashSet<Vector3Int> visited = new();
+            GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
 
-            queue.Enqueue(start);
-            visited.Add(start);
+            HashSet<Vector3Int> openSet = new() { start };
+            HashSet<Vector3Int> closedSet = new();
+            Dictionary<Vector3Int, Vector3Int> cameFrom = new();
+            Dictionary<Vector3Int, int> gScore = new();
+            Dictionary<Vector3Int, int> fScore = new();
+
+            gScore[start] = 0;
+            fScore[start] = Heuristic(start, target);
+
             LastVisited.Add(start);
 
-            while (queue.Count > 0)
+            while (openSet.Count > 0)
             {
-                Vector3Int current = queue.Dequeue();
+                Vector3Int current = GetLowestFScoreNode(openSet, fScore, gScore);
+
+                if (current == target)
+                {
+                    LastPath = ReconstructPath(cameFrom, start, target);
+                    BotMovementTraceLog.LogPathSummary(
+                        "found",
+                        start,
+                        target,
+                        mapContext,
+                        LastVisited.Count,
+                        LastRejectedSolid.Count,
+                        LastRejectedBlocked.Count,
+                        LastRejectedDanger.Count,
+                        LastPath.Count);
+                    return LastPath;
+                }
+
+                openSet.Remove(current);
+                closedSet.Add(current);
 
                 foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
                 {
                     Vector3Int next = current + dir;
 
-                    if (visited.Contains(next))
+                    if (closedSet.Contains(next))
                         continue;
 
                     if (!BotGridUtility.IsWithinBounds(next, mapContext))
@@ -63,8 +96,6 @@ namespace _Project.Gameplay.AI.Scripts
                         LastRejectedSolid.Add(next);
                         continue;
                     }
-
-                    GridOccupancyService occupancy = mapContext != null ? mapContext.GridOccupancyService : null;
 
                     if (occupancy != null)
                     {
@@ -101,30 +132,40 @@ namespace _Project.Gameplay.AI.Scripts
                         }
                     }
 
-
                     if (dangerCells != null && dangerCells.Contains(next))
                     {
                         LastRejectedDanger.Add(next);
                         continue;
                     }
 
-                    visited.Add(next);
-                    LastVisited.Add(next);
-                    cameFrom[next] = current;
+                    int tentativeGScore = gScore[current] + 1;
 
-                    if (next == target)
+                    if (!gScore.TryGetValue(next, out int existingGScore) || tentativeGScore < existingGScore)
                     {
-                        LastPath = ReconstructPath(cameFrom, start, target);
-                        BotMovementTraceLog.LogPathSummary("found", start, target, mapContext, LastVisited.Count, LastRejectedSolid.Count, LastRejectedBlocked.Count, LastRejectedDanger.Count, LastPath.Count);
-                        return LastPath;
-                    }
+                        cameFrom[next] = current;
+                        gScore[next] = tentativeGScore;
+                        fScore[next] = tentativeGScore + Heuristic(next, target);
 
-                    queue.Enqueue(next);
+                        if (!openSet.Contains(next))
+                        {
+                            openSet.Add(next);
+                            LastVisited.Add(next);
+                        }
+                    }
                 }
             }
 
             LastPath = null;
-            BotMovementTraceLog.LogPathSummary("failed", start, target, mapContext, LastVisited.Count, LastRejectedSolid.Count, LastRejectedBlocked.Count, LastRejectedDanger.Count, 0);
+            BotMovementTraceLog.LogPathSummary(
+                "failed",
+                start,
+                target,
+                mapContext,
+                LastVisited.Count,
+                LastRejectedSolid.Count,
+                LastRejectedBlocked.Count,
+                LastRejectedDanger.Count,
+                0);
             return null;
         }
 
@@ -163,6 +204,38 @@ namespace _Project.Gameplay.AI.Scripts
                 return null;
 
             return bestPath[bestPath.Count - 1];
+        }
+
+        private int Heuristic(Vector3Int from, Vector3Int to)
+        {
+            return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+        }
+
+        private Vector3Int GetLowestFScoreNode(
+            HashSet<Vector3Int> openSet,
+            Dictionary<Vector3Int, int> fScore,
+            Dictionary<Vector3Int, int> gScore)
+        {
+            bool hasBest = false;
+            Vector3Int bestNode = default;
+            int bestF = int.MaxValue;
+            int bestG = int.MaxValue;
+
+            foreach (Vector3Int node in openSet)
+            {
+                int nodeF = fScore.TryGetValue(node, out int f) ? f : int.MaxValue;
+                int nodeG = gScore.TryGetValue(node, out int g) ? g : int.MaxValue;
+
+                if (!hasBest || nodeF < bestF || (nodeF == bestF && nodeG < bestG))
+                {
+                    hasBest = true;
+                    bestNode = node;
+                    bestF = nodeF;
+                    bestG = nodeG;
+                }
+            }
+
+            return bestNode;
         }
 
         private List<Vector3Int> ReconstructPath(

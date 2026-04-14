@@ -88,9 +88,41 @@ namespace _Project.Gameplay.AI.Scripts.States
             bool done = executor.FollowPath(blackboard);
             if (done)
             {
+                // Path following finished (reached destination or got stuck)
+                if (sense.IsInDanger)
+                {
+                    // Still in danger after path finished - try fallback escape
+                    // Attempt to find any safe cell we can reach
+                    if (TryEscapeToAnySafeCell(sense))
+                    {
+                        // Continue with fallback path
+                        return;
+                    }
+                }
+
                 executor.Stop();
                 finished = true;
             }
+        }
+
+        private bool TryEscapeToAnySafeCell(BotSenseContext sense)
+        {
+            if (sense.SafeCells.Count == 0)
+                return false;
+
+            // Find the closest safe cell and try to reach it
+            List<Vector3Int> path = navigator.FindShortestPathToAny(
+                sense.CurrentCell,
+                sense.SafeCells,
+                sense.DangerCells,
+                sense.BlockedCells,
+                executor.Player);
+
+            if (path == null || path.Count <= 1)
+                return false;
+
+            blackboard.SetPath(path);
+            return true;
         }
 
         public void Exit()

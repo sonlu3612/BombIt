@@ -299,12 +299,43 @@ namespace _Project.Gameplay.AI.Scripts.States
             Debug.Log($"[BB] Arrived bombCell={candidateBombCell} targetBlock={targetBlockCell} settled={executor.Player.GetLogicCell()} canPlace={executor.Player.CanPlaceBomb} navSettled={executor.Player.IsNavigationSettled}");
             escapePath = null;
 
-            return BotBombEscapeUtility.TryFindEscapePath(
+            bool found = BotBombEscapeUtility.TryFindEscapePath(
                 navigator,
                 executor.Player,
                 sense,
                 candidateBombCell,
                 out escapePath);
+
+            if (found && escapePath != null && escapePath.Count > 1)
+                return true;
+
+            // Fallback: allow a simple 1-step escape if there is a safe neighbor.
+            HashSet<Vector3Int> futureBlast = BotGridUtility.GetBlastCells(
+                candidateBombCell,
+                executor.Player.BombRangeStat,
+                navigator.MapContext);
+
+            foreach (Vector3Int dir in BotGridUtility.CardinalDirections)
+            {
+                Vector3Int neighbor = candidateBombCell + dir;
+
+                if (futureBlast.Contains(neighbor))
+                    continue;
+
+                if (sense.DangerCells.Contains(neighbor))
+                    continue;
+
+                if (!BotGridUtility.IsWalkable(neighbor, navigator.MapContext))
+                    continue;
+
+                if (sense.BlockedCells.Contains(neighbor))
+                    continue;
+
+                escapePath = new List<Vector3Int> { candidateBombCell, neighbor };
+                return true;
+            }
+
+            return false;
         }
 
         private void ClearPreparedPlan()

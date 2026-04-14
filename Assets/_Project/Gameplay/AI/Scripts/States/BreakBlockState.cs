@@ -43,8 +43,7 @@ namespace _Project.Gameplay.AI.Scripts.States
             if (sense.IsInDanger
                 || executor.Player == null
                 || !executor.Player.CanPlaceBomb
-                || sense.BreakableBlocks.Count == 0
-                || Random.value > config.breakBlockChance)
+                || sense.BreakableBlocks.Count == 0)
             {
                 return false;
             }

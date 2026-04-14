@@ -295,7 +295,12 @@ public class PlayerMovement : MonoBehaviour
             targetCell = null;
             activeMoveAxis = MovementAxis.None;
 
-            occupancy.MovePlayer(controller, previousCell, destinationCell);
+            // Only update occupancy if currentCell wasn't already updated by UpdateCurrentCellFromNavigation
+            if (previousCell != destinationCell)
+            {
+                occupancy.MovePlayer(controller, previousCell, destinationCell);
+            }
+            
             bool continuesMoving = ShouldAutoQueueHeldMove() && TryQueueHeldMoveFromCurrentCell();
 
             if (!continuesMoving && controller != null && controller.IsBotControlled)
@@ -453,19 +458,22 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateCurrentCellFromNavigation(Vector3 navigationPosition, Vector3Int destinationCell)
     {
-
-        // BotMovementTraceLog.LogPlayerMovement(
-        //     controller,
-        //     "CROSS_BOUNDARY",
-        //     settledCell,
-        //     currentCell,
-        //     targetCell,
-        //     navigationPosition,
-        //     GetCellNavigationAnchor(destinationCell),
-        //     requestedDirection,
-        //     currentMoveDirection,
-        //     isMoving,
-        //     "occupancy advanced before settle");
+        // Check if player has visually crossed into the destination cell
+        // by comparing current navigation position cell with where they started
+        Vector3Int navigationCell = occupancy.WorldToCell(navigationPosition);
+        
+        if (navigationCell == destinationCell && currentCell != destinationCell)
+        {
+            // Player has crossed the cell boundary - update currentCell immediately
+            Vector3Int previousCell = currentCell;
+            currentCell = destinationCell;
+            
+            // Update occupancy tracking for dynamic blocking
+            if (previousCell != destinationCell)
+            {
+                occupancy.MovePlayer(controller, previousCell, destinationCell);
+            }
+        }
     }
 
     private Vector3 GetCellNavigationAnchor(Vector3Int cell)

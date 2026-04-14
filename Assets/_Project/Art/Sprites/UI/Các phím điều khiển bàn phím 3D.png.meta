@@ -1,0 +1,299 @@
+fileFormatVersion: 2
+guid: 55a4436eb71d00e4e831e7ea6ef21eb0
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3280461458729468071
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_0"
+  - first:
+      213: -2117653535285166469
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_1"
+  - first:
+      213: -2002899442823463179
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_2"
+  - first:
+      213: 5148980521241727884
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_3"
+  - first:
+      213: 9064633436250764053
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_4"
+  - first:
+      213: 3942737539087238204
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_5"
+  - first:
+      213: 8798551643456892039
+    second: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_6"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_0"
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 291
+        width: 987
+        height: 563
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a00eeae05a868d20800000000000000
+      internalID: 3280461458729468071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_1"
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 319
+        width: 467
+        height: 130
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7e3af754559c92e0800000000000000
+      internalID: -2117653535285166469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_2"
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 559
+        width: 386
+        height: 266
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fefdad81954434e0800000000000000
+      internalID: -2002899442823463179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_3"
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 317
+        width: 473
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c83d40ce08ad47740800000000000000
+      internalID: 5148980521241727884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_4"
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 559
+        width: 383
+        height: 266
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 513fad2751c0ccd70800000000000000
+      internalID: 9064633436250764053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_5"
+      rect:
+        serializedVersion: 2
+        x: 1132
+        y: 559
+        width: 381
+        height: 265
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3484ebf6ea67b630800000000000000
+      internalID: 3942737539087238204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_6"
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 317
+        width: 275
+        height: 229
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78c6d2e5a1cba1a70800000000000000
+      internalID: 8798551643456892039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 86e55494c2100574293b4a659c40465a
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_0": 3280461458729468071
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_1": -2117653535285166469
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_2": -2002899442823463179
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_3": 5148980521241727884
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_4": 9064633436250764053
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_5": 3942737539087238204
+      "C\xE1c ph\xEDm \u0111i\u1EC1u khi\u1EC3n b\xE0n ph\xEDm 3D_6": 8798551643456892039
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

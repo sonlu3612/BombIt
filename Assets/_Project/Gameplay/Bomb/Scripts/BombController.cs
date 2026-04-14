@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using _Project.Gameplay.AI.Scripts;
+using _Project.Gameplay.Audio.Scripts;
 using _Project.Gameplay.Map.Scripts;
 using _Project.Gameplay.Player.Scripts;
 
@@ -18,6 +19,8 @@ namespace _Project.Gameplay.Bomb.Scripts
         private float spawnedAt;
         private GridOccupancyService occupancyService;
         private bool registeredInOccupancy;
+        private bool hasExploded;
+        private Coroutine explodeCoroutine;
 
         public Vector3Int CurrentCell => GetBombCell();
         public int Range => bombData != null ? bombData.range : 1;
@@ -71,7 +74,7 @@ namespace _Project.Gameplay.Bomb.Scripts
             onExplode = onExplodeCallback;
             spawnedAt = Time.time;
 
-            StartCoroutine(ExplodeAfterTime());
+            explodeCoroutine = StartCoroutine(ExplodeAfterTime());
 
             MapContext context = FindAnyObjectByType<MapContext>();
             if (context != null)
@@ -125,12 +128,7 @@ namespace _Project.Gameplay.Bomb.Scripts
         private IEnumerator ExplodeAfterTime()
         {
             yield return new WaitForSeconds(bombData.explodeTime);
-
-            UnregisterFromOccupancy();
-            Explode();
-            onExplode?.Invoke();
-
-            Destroy(gameObject);
+            TriggerExplosion();
         }
 
         private void OnDestroy()
@@ -165,12 +163,32 @@ namespace _Project.Gameplay.Bomb.Scripts
             return spawnPos;
         }
 
+        public void TriggerExplosion()
+        {
+            if (hasExploded || bombData == null)
+                return;
+
+            hasExploded = true;
+
+            if (explodeCoroutine != null)
+            {
+                StopCoroutine(explodeCoroutine);
+                explodeCoroutine = null;
+            }
+
+            UnregisterFromOccupancy();
+            Explode();
+            onExplode?.Invoke();
+            Destroy(gameObject);
+        }
+
         private void Explode()
         {
             damagedPlayerIdsThisExplosion.Clear();
 
             Vector3Int centerCell = GetBombCell();
             BotRuntimeDebugLog.LogBombExploded(this, centerCell, bombData != null ? bombData.range : 1);
+            AudioManager.Instance?.PlayBombExplosion();
 
             GameObject center = Instantiate(explosionCenter, transform.position, Quaternion.identity);
             Explosion explosion = center.GetComponent<Explosion>();
@@ -213,10 +231,25 @@ namespace _Project.Gameplay.Bomb.Scripts
                 }
 
                 DamagePlayersAtCell(cell);
+                TriggerBombAtCell(cell);
 
                 GameObject prefab = i == bombData.range ? explosionEnd : explosionMiddle;
                 SpawnExplosion(prefab, visualPos, rotation);
             }
+        }
+
+        private void TriggerBombAtCell(Vector3Int cell)
+        {
+            if (occupancyService == null)
+                return;
+
+            if (!occupancyService.TryGetBombAtCell(cell, out BombController otherBomb))
+                return;
+
+            if (otherBomb == null || otherBomb == this)
+                return;
+
+            otherBomb.TriggerExplosion();
         }
 
         private void SpawnExplosion(GameObject prefab, Vector3 pos, Quaternion rotation)

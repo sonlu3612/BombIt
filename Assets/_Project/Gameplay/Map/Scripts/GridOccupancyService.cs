@@ -70,6 +70,11 @@ namespace _Project.Gameplay.Map.Scripts
             return bombsByCell.ContainsKey(cell);
         }
 
+        public bool TryGetBombAtCell(Vector3Int cell, out BombController bomb)
+        {
+            return bombsByCell.TryGetValue(cell, out bomb) && bomb != null;
+        }
+
         public bool HasPlayer(Vector3Int cell, PlayerController ignorePlayer = null)
         {
             if (!playersByCell.TryGetValue(cell, out HashSet<PlayerController> players))

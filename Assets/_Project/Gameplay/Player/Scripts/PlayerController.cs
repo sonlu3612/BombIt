@@ -1,4 +1,5 @@
 using _Project.Gameplay.AI.Scripts;
+using _Project.Gameplay.Audio.Scripts;
 using _Project.Gameplay.Bomb.Scripts;
 using _Project.Gameplay.Map.Scripts;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace _Project.Gameplay.Player.Scripts
         public float MoveSpeedStat => player != null ? player.Speed : 0f;
         public int HealthStat => player != null ? player.Health : 1;
         public int ActiveBombCount => currentBomb;
-        public bool CanPlaceBomb => player != null && currentBomb < player.BombCount;
+        public bool CanPlaceBomb => !controlsLocked && player != null && currentBomb < player.BombCount;
         public MapContext CurrentMapContext => mapContext;
         public bool IsBotControlled => botBrain != null && botBrain.enabled;
         public bool IsNavigationSettled => movement == null || !movement.IsInitialized || movement.IsSettledOnCurrentCell();
@@ -49,8 +50,13 @@ namespace _Project.Gameplay.Player.Scripts
         private int currentBomb;
         private SpriteRenderer spriteRenderer;
         private bool isDying = false;
+        private bool controlsLocked;
+        private float invulnerableUntilTime;
+        private Coroutine blinkRoutine;
 
         public bool IsDying => isDying;
+        public bool IsControlLocked => controlsLocked;
+        public bool IsInvulnerable => Time.time < invulnerableUntilTime;
 
         public void Init(MapContext context)
         {
@@ -240,6 +246,12 @@ namespace _Project.Gameplay.Player.Scripts
 
         private void HandleMovement()
         {
+            if (controlsLocked || player == null)
+            {
+                movement.Move(Vector2.zero, 0f);
+                return;
+            }
+
             if (inputDir != Vector2.zero)
                 lastDir = inputDir;
 
@@ -280,6 +292,12 @@ namespace _Project.Gameplay.Player.Scripts
 
         public void OnMove(InputValue value)
         {
+            if (controlsLocked)
+            {
+                inputDir = Vector2.zero;
+                return;
+            }
+
             inputDir = value.Get<Vector2>();
 
             if (inputDir.x != 0)
@@ -288,12 +306,20 @@ namespace _Project.Gameplay.Player.Scripts
 
         public void OnBomb()
         {
+            if (controlsLocked)
+                return;
+
             PlaceBomb();
         }
 
         public void TakeDamage()
         {
+            if (player == null || isDying || IsInvulnerable)
+                return;
+
             player.TakeDamage();
+            AudioManager.Instance?.PlayDamage();
+            StartTemporaryInvulnerability(1f, 4);
 
             if (player.Health <= 0)
                 Die();
@@ -301,7 +327,7 @@ namespace _Project.Gameplay.Player.Scripts
 
         public void PlaceBomb()
         {
-            if (currentBomb >= player.BombCount)
+            if (controlsLocked || player == null || currentBomb >= player.BombCount)
                 return;
 
             if (mapContext == null)
@@ -342,28 +368,96 @@ namespace _Project.Gameplay.Player.Scripts
         private void Die()
         {
             isDying = true;
+            controlsLocked = true;
+            StopBlinkVisual(resetVisible: true);
             Debug.Log("Player died");
             Destroy(gameObject);
         }
 
         public void PlaySpawnIntro(float duration, int blinkCount)
         {
-            if (spriteRenderer == null)
-                return;
-
-            StartCoroutine(PlaySpawnIntroCoroutine(duration, blinkCount));
+            BeginSpawnProtection(duration, blinkCount);
         }
 
-        private System.Collections.IEnumerator PlaySpawnIntroCoroutine(float duration, int blinkCount)
+        public void BeginSpawnProtection(float duration, int blinkCount)
         {
-            float blinkInterval = duration / (blinkCount * 2f);
-            for (int i = 0; i < blinkCount; i++)
+            controlsLocked = true;
+            inputDir = Vector2.zero;
+            movement?.StopImmediately();
+            StartBlink(duration, blinkCount, unlockControlsAtEnd: true);
+        }
+
+        private void StartTemporaryInvulnerability(float duration, int blinkCount)
+        {
+            StartBlink(duration, blinkCount, unlockControlsAtEnd: false);
+        }
+
+        private void StartBlink(float duration, int blinkCount, bool unlockControlsAtEnd)
+        {
+            if (duration <= 0f)
+            {
+                if (unlockControlsAtEnd)
+                    controlsLocked = false;
+                return;
+            }
+
+            invulnerableUntilTime = Mathf.Max(invulnerableUntilTime, Time.time + duration);
+
+            if (blinkRoutine != null)
+                StopCoroutine(blinkRoutine);
+
+            blinkRoutine = StartCoroutine(BlinkCoroutine(duration, blinkCount, unlockControlsAtEnd));
+        }
+
+        private System.Collections.IEnumerator BlinkCoroutine(float duration, int blinkCount, bool unlockControlsAtEnd)
+        {
+            if (spriteRenderer == null)
+            {
+                yield return new WaitForSeconds(duration);
+
+                if (unlockControlsAtEnd)
+                    controlsLocked = false;
+
+                blinkRoutine = null;
+                yield break;
+            }
+
+            float safeDuration = Mathf.Max(0f, duration);
+            int safeBlinkCount = Mathf.Max(1, blinkCount);
+            float blinkInterval = safeDuration / (safeBlinkCount * 2f);
+
+            if (blinkInterval <= 0f)
+                blinkInterval = 0.05f;
+
+            float endTime = Time.time + safeDuration;
+
+            while (Time.time < endTime)
             {
                 spriteRenderer.enabled = false;
                 yield return new WaitForSeconds(blinkInterval);
+
                 spriteRenderer.enabled = true;
                 yield return new WaitForSeconds(blinkInterval);
             }
+
+            spriteRenderer.enabled = true;
+
+            if (unlockControlsAtEnd)
+                controlsLocked = false;
+
+            blinkRoutine = null;
+        }
+
+        private void StopBlinkVisual(bool resetVisible)
+        {
+            if (blinkRoutine != null)
+            {
+                StopCoroutine(blinkRoutine);
+                blinkRoutine = null;
+            }
+
+            if (resetVisible && spriteRenderer != null)
+                spriteRenderer.enabled = true;
         }
 
         public void ClearMoveInput()
@@ -373,6 +467,12 @@ namespace _Project.Gameplay.Player.Scripts
 
         public void SetMoveDirection(Vector2 dir)
         {
+            if (controlsLocked)
+            {
+                inputDir = Vector2.zero;
+                return;
+            }
+
             if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y))
                 inputDir = new Vector2(Mathf.Sign(dir.x), 0);
             else if (Mathf.Abs(dir.y) > 0)
@@ -424,6 +524,11 @@ namespace _Project.Gameplay.Player.Scripts
 
             cachedNavigationLocalOffset = Vector3.zero;
             hasCachedNavigationLocalOffset = true;
+        }
+
+        private void OnDisable()
+        {
+            StopBlinkVisual(resetVisible: true);
         }
     }
 }

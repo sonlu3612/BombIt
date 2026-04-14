@@ -1,5 +1,6 @@
 using _Project.Gameplay.AI.Scripts.States;
 using _Project.Gameplay.Map.Scripts;
+using _Project.Gameplay.Match.Scripts;
 using _Project.Gameplay.Player.Scripts;
 using System.Collections.Generic;
 using UnityEngine;
@@ -95,6 +96,9 @@ namespace _Project.Gameplay.AI.Scripts
         private void Update()
         {
             if (blackboard == null)
+                return;
+
+            if (RoundIntroState.IsActive || playerController == null || playerController.IsControlLocked)
                 return;
 
             if (Time.time < blackboard.LastThinkTime + config.thinkInterval)

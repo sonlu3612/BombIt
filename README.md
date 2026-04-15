@@ -1,30 +1,30 @@
-# 🎮 BombIt - Bomberman Game
+# BombIt - Bomberman Game
 
-Một trò chơi Bomberman hiện đại được xây dựng bằng **Unity** với hệ thống AI thông minh, gameplay cân bằng và đồ họa ấn tượng.
+A modern Bomberman game built with **Unity** featuring an intelligent AI system, balanced gameplay, and impressive graphics.
 
-## ✨ Tính Năng Chính
+## Main Features
 
-- 🤖 **Hệ thống AI tiên tiến**: Bot thông minh với priority-based state machine
-- 💣 **Gameplay cổ điển**: Trồng bom, phá block, tấn công người chơi khác
-- 🎯 **AI đa cấp độ**: Easy, Normal, Hard - mỗi cấp độ có cách chơi khác nhau
-- 🗺️ **Pathfinding thông minh**: Sử dụng A* algorithm để tìm đường tối ưu
-- 🎨 **Giao diện hiện đại**: UI Toolkit, quản lý trạng thái game tinh tế
-- 🔊 **Âm thanh và hiệu ứng**: SFX và music để tăng trải nghiệm chơi
+- **Advanced AI System**: Intelligent bots with priority-based state machine
+- **Classic Gameplay**: Plant bombs, break blocks, attack other players
+- **Multi-Difficulty AI**: Easy, Normal, Hard - each difficulty with different gameplay
+- **Smart Pathfinding**: Uses A* algorithm for optimal pathfinding
+- **Modern Interface**: UI Toolkit with sophisticated game state management
+- **Audio & Effects**: SFX and music to enhance gameplay experience
 
-## 📋 Requirements
+## Requirements
 
-### Phần Mềm Cần Thiết
-- **Unity Engine**: Phiên bản **2022.3 LTS** hoặc cao hơn
-- **.NET Framework**: .NET 6.0 hoặc cao hơn (đi kèm với Unity)
-- **Git**: Để clone repository
+### Software Requirements
+- **Unity Engine**: Version **2022.3 LTS** or higher
+- **.NET Framework**: .NET 6.0 or higher (bundled with Unity)
+- **Git**: For cloning the repository
 
-### Phần Cứng Tối Thiểu
-- **CPU**: Intel i5 / AMD Ryzen 5 hoặc tương đương
+### Minimum Hardware
+- **CPU**: Intel i5 / AMD Ryzen 5 or equivalent
 - **RAM**: 8GB
-- **Storage**: 5GB cho project (tùy packages)
-- **GPU**: Integrated graphics hoặc dedicated GPU
+- **Storage**: 5GB for project (varies with packages)
+- **GPU**: Integrated graphics or dedicated GPU
 
-## 🚀 Hướng Dẫn Cài Đặt
+## Installation Guide
 
 ### 1. Clone Repository
 
@@ -33,60 +33,60 @@ git clone https://github.com/sonlu3612/BombIt.git
 cd BombIt
 ```
 
-### 2. Mở Project trong Unity
+### 2. Open Project in Unity
 
-**Cách 1: Sử dụng Unity Hub**
-1. Mở Unity Hub
-2. Chọn **"Open"** → chọn thư mục `BombIt`
-3. Chọn Unity version **2022.3 LTS** (hoặc cao hơn)
-4. Đợi Unity import project (5-10 phút lần đầu)
+**Method 1: Using Unity Hub**
+1. Open Unity Hub
+2. Select **"Open"** → choose `BombIt` folder
+3. Select Unity version **2022.3 LTS** (or higher)
+4. Wait for Unity to import the project (5-10 minutes on first import)
 
-**Cách 2: Mở trực tiếp**
-1. Mở Unity Hub hoặc Unity Editor
-2. Chọn **"Open Project"**
-3. Điều hướng đến thư mục `BombIt`
-4. Chọn thư mục gốc và click **"Select Folder"**
+**Method 2: Direct Open**
+1. Open Unity Hub or Unity Editor
+2. Select **"Open Project"**
+3. Navigate to the `BombIt` folder
+4. Select the root folder and click **"Select Folder"**
 
-### 3. Chờ Import Assets
+### 3. Wait for Asset Import
 
-- Unity sẽ tự động import tất cả assets (2D sprites, scripts, materials)
-- Kiểm tra **Console** (Ctrl+Shift+C) để xem có lỗi gì không
-- Tất cả lỗi sẽ được highlight màu đỏ
+- Unity will automatically import all assets (2D sprites, scripts, materials)
+- Check **Console** (Ctrl+Shift+C) for any errors
+- All errors will be highlighted in red
 
-### 4. Kiểm Tra Scene
+### 4. Check Scene
 
-1. Mở thư mục **Assets/Scenes**
-2. Double-click vào **"MainScene"** hoặc **"GameScene"** để load
-3. Kiểm tra Hierarchy có GameObject không
+1. Open the **Assets/Scenes** folder
+2. Double-click on **"MainScene"** or **"GameScene"** to load
+3. Check if GameObjects appear in Hierarchy
 
-## 🎮 Chạy Game
+## Running the Game
 
-### Play trong Unity Editor
-1. Mở scene muốn chơi từ **Assets/Scenes**
-2. Click nút **Play** (▶️) ở giữa trên cùng của editor
-3. Sử dụng keyboard để điều khiển:
-   - **Arrow Keys** hoặc **WASD**: Di chuyển
-   - **Space**: Đặt bom
+### Play in Unity Editor
+1. Open a scene from **Assets/Scenes**
+2. Click the **Play** button at the top center of the editor
+3. Use keyboard to control:
+   - **Arrow Keys** or **WASD**: Move
+   - **Space**: Plant bomb
    - **Esc**: Pause/Quit
 
 ### Build & Play Standalone
 1. **File** → **Build Settings**
-2. Chọn **PC, Mac & Linux Standalone** (hoặc platform khác)
+2. Select **PC, Mac & Linux Standalone** (or other platform)
 3. Click **"Build and Run"**
-4. Chọn thư mục để lưu build
-5. Game sẽ chạy trực tiếp
+4. Choose a folder to save the build
+5. Game will run directly
 
-## 📁 Cấu Trúc Project
+## Project Structure
 
 ```
 BombIt/
 ├── Assets/
-│   ├── Scripts/              # Code C# chính
-│   │   ├── AI/              # Hệ thống AI Bot
+│   ├── Scripts/              # Main C# code
+│   │   ├── AI/              # Bot AI system
 │   │   ├── Gameplay/        # Game logic, bomb, player
 │   │   ├── UI/              # UI system
 │   │   └── Utils/           # Helper classes
-│   ├── Scenes/              # Các scene game
+│   ├── Scenes/              # Game scenes
 │   ├── Prefabs/             # Reusable GameObjects
 │   ├── Art/                 # Sprites, textures
 │   │   ├── Sprites/         # 2D sprites
@@ -94,47 +94,47 @@ BombIt/
 │   └── Settings/            # Project settings
 ├── Libraries/               # External packages
 ├── ProjectSettings/         # Unity project settings
-└── README.md               # File hướng dẫn này
+└── README.md               # This guide file
 ```
 
-## 🤖 Hệ Thống AI
+## AI System
 
-Dự án sử dụng một hệ thống AI tiên tiến dựa trên **Priority-based State Machine**:
+The project uses an advanced AI system based on **Priority-based State Machine**:
 
-### Các State Chính
-1. **EscapeAfterBombState** - Thoát sau khi trồng bom
-2. **EvadeBombState** - Trốn tránh bom nổ
-3. **PlantBombState** - Trồng bom chiến lược
-4. **GetItemState** - Lượm item
-5. **AttackEnemyState** - Tấn công người chơi
-6. **BreakBlockState** - Phá block
-7. **WanderState** - Khám phá map
+### Main States
+1. **EscapeAfterBombState** - Escape after planting bomb
+2. **EvadeBombState** - Evade bomb explosions
+3. **PlantBombState** - Plant bomb strategically
+4. **GetItemState** - Collect items
+5. **AttackEnemyState** - Attack other players
+6. **BreakBlockState** - Break blocks
+7. **WanderState** - Explore map
 
-### Cấp Độ Khó
-- **Easy**: Suy nghĩ chậm (0.25s), trồng bom ít (70%)
-- **Normal**: Cân bằng (0.12s), trồng bom 95%
-- **Hard**: Suy nghĩ nhanh (0.08s), trồng bom hay (98%)
+### Difficulty Levels
+- **Easy**: Slow thinking (0.25s), low bomb placement (70%)
+- **Normal**: Balanced (0.12s), bomb placement 95%
+- **Hard**: Fast thinking (0.08s), high bomb placement (98%)
 
-Chi tiết hơn: xem [**AI_SYSTEM_DOCUMENTATION.md**](AI_SYSTEM_DOCUMENTATION.md)
+For more details: see [**AI_SYSTEM_DOCUMENTATION.md**](AI_SYSTEM_DOCUMENTATION.md)
 
-## 📚 Phát Triển
+## Development
 
-### Cấu Trúc Thư Mục Scripts
+### Scripts Folder Structure
 ```
 Scripts/
 ├── Core/
-│   ├── GameFlowConfig.cs     # Cấu hình game
-│   └── GameManager.cs        # Quản lý game state
+│   ├── GameFlowConfig.cs     # Game configuration
+│   └── GameManager.cs        # Game state management
 ├── Gameplay/
-│   ├── PlayerController.cs   # Điều khiển player
-│   ├── BombController.cs     # Logic bom
-│   └── ExplosionController.cs # Xử lý nổ bom
+│   ├── PlayerController.cs   # Player control
+│   ├── BombController.cs     # Bomb logic
+│   └── ExplosionController.cs # Explosion handling
 ├── AI/
-│   ├── BotBrain.cs          # Bộ não bot chính
+│   ├── BotBrain.cs          # Main bot brain
 │   ├── BotStateMachine.cs   # State machine
-│   ├── BotNavigator.cs      # Pathfinding A*
-│   ├── States/              # Tất cả AI states
-│   └── BotConfig.cs         # Cấu hình AI
+│   ├── BotNavigator.cs      # A* pathfinding
+│   ├── States/              # All AI states
+│   └── BotConfig.cs         # AI configuration
 ├── UI/
 │   ├── GameUI.cs            # In-game UI
 │   └── MenuUI.cs            # Main menu
@@ -147,68 +147,68 @@ Scripts/
 ```bash
 # Clean build
 File → New Window → Open Project
-# hoặc
+# or
 rm -r Library
 rm -r obj
-# Rồi mở lại project
+# Then reopen the project
 ```
 
 ### Debug Mode
-Bật debug mode để visualize AI:
-1. Chọn Bot GameObject trong Hierarchy
-2. Tìm component **BotBrain** trong Inspector
-3. Enable các checkbox:
-   - `debugDrawPath` - Hiễn thị đường đi
-   - `debugDrawSense` - Hiển thị cảm nhận
-   - `debugDrawDanger` - Hiển thị vùng nguy hiểm
+Enable debug mode to visualize AI:
+1. Select Bot GameObject in Hierarchy
+2. Find **BotBrain** component in Inspector
+3. Enable checkboxes:
+   - `debugDrawPath` - Show pathfinding
+   - `debugDrawSense` - Show sensing
+   - `debugDrawDanger` - Show danger zone
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### ❌ "Assembly-CSharp dll not found"
-**Giải pháp:**
-- Close Unity → Delete `Library` folder → Mở lại project
+### "Assembly-CSharp dll not found"
+**Solution:**
+- Close Unity → Delete `Library` folder → Reopen project
 
-### ❌ Scripts không compile
-**Giải pháp:**
-- Kiểm tra Console (Ctrl+Shift+C)
-- Xem error messages
-- Đảm bảo Unity version >= 2022.3
+### Scripts don't compile
+**Solution:**
+- Check Console (Ctrl+Shift+C)
+- Read error messages
+- Ensure Unity version >= 2022.3
 
-### ❌ Scene không load
-**Giải pháp:**
-- Mở **Assets/Scenes/MainScene** hoặc **GameScene**
-- Nếu vẫn lỗi → delete Scene → tạo mới từ prefabs
+### Scene won't load
+**Solution:**
+- Open **Assets/Scenes/MainScene** or **GameScene**
+- If still fails → delete Scene → recreate from prefabs
 
-### ❌ Bot chạy quá nhanh/chậm
-**Giải pháp:**
-- Vào **Assets/Settings/BotConfig**
-- Adjust `thinkInterval` (mặc định 0.12s)
-- Hoặc thay đổi cấp độ khó
+### Bot runs too fast/slow
+**Solution:**
+- Go to **Assets/Settings/BotConfig**
+- Adjust `thinkInterval` (default 0.12s)
+- Or change difficulty level
 
-## 🎯 Tính Năng Sắp Tới
+## Future Features
 
-- [ ] Chế độ multiplayer online
-- [ ] Thêm items đặc biệt (shield, speed up)
+- [ ] Online multiplayer mode
+- [ ] Special items (shield, speed up)
 - [ ] Level editor
 - [ ] Leaderboard
 - [ ] Mobile support (Android/iOS)
 
-## 📄 License
+## License
 
-Project này được phát hành dưới license **MIT**. Xem file [LICENSE](LICENSE) để chi tiết.
+This project is released under the **MIT** license. See [LICENSE](LICENSE) file for details.
 
-## 👥 Đội Phát Triển
+## Development Team
 
-- **Tác giả**: sonlu3612
+- **Author**: sonlu3612
 - **AI System**: Priority-based State Machine + A* Pathfinding
 - **Engine**: Unity 2022.3 LTS+
 
-## 📞 Support & Feedback
+## Support & Feedback
 
-- 📧 Issues: [GitHub Issues](https://github.com/sonlu3612/BombIt/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/sonlu3612/BombIt/discussions)
+- Issues: [GitHub Issues](https://github.com/sonlu3612/BombIt/issues)
+- Discussions: [GitHub Discussions](https://github.com/sonlu3612/BombIt/discussions)
 
 ---
 
-**Chúc bạn chơi game vui vẻ! Happy Bombing! 💣**
+**Enjoy the game! Happy Bombing!**
 
